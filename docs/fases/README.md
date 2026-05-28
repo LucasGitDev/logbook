@@ -8,13 +8,13 @@ Vault &    Daily       Notas &     Task        Polimento
 Parser     View        Links       System
 ```
 
-| Fase | Tema | Objetivo central | Entregável |
-|---|---|---|---|
-| [**1**](./fase-1-vault-parser.md) | Vault & Parser | Ler/escrever arquivos reais; parsear frontmatter, sintaxe e links | Abrir vault, criar nota do dia, salvar `.md`, ver tasks/agenda/links parseados |
-| [**2**](./fase-2-daily-view.md) | Daily View | A tela principal com editor rico | Editor `/`+`@`, ver tasks, marcar como feita (atualiza o `.md`), navegar dias |
-| [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link |
-| [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; inbox; filtro por projeto; visão semanal |
-| [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | App pronto pra uso diário: tema, responsivo, git, atalhos |
+| Fase | Tema | Objetivo central | Entregável | Status |
+|---|---|---|---|---|
+| [**1**](./fase-1-vault-parser.md) | Vault & Parser | Ler/escrever arquivos reais; parsear frontmatter, sintaxe e links | Abrir vault, criar nota do dia, salvar `.md`, ver tasks/agenda/links parseados | ✅ Concluída |
+| [**2**](./fase-2-daily-view.md) | Daily View | A tela principal com editor rico | Editor `/`+`@`, ver tasks, marcar como feita (atualiza o `.md`), navegar dias | ⬜ A fazer |
+| [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link | ⬜ A fazer |
+| [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; inbox; filtro por projeto; visão semanal | ⬜ A fazer |
+| [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | App pronto pra uso diário: tema, responsivo, git, atalhos | ⬜ A fazer |
 
 ## Dependências entre objetivos
 

@@ -18,13 +18,13 @@ Edição estilo Notion: o usuário **nunca digita emoji nem `[[...]]` à mão** 
 
 ## Roadmap (resumo)
 
-| Fase | Tema | Entregável |
-|---|---|---|
-| **1** | [Vault & Parser](./fases/fase-1-vault-parser.md) | Abrir vault, criar nota do dia, salvar `.md` real, parsear frontmatter/tasks/agenda/links |
-| **2** | [Daily View](./fases/fase-2-daily-view.md) | Editor rico (`/` e `@`), ver tasks parseadas, marcar como feita (atualiza o `.md`) |
-| **3** | [Notas & Links](./fases/fase-3-notas-links.md) | Notas livres, `[[wikilinks]]`, backlinks, criar nota via link |
-| **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto |
-| **5** | [Polimento](./fases/fase-5-polimento.md) | Tema, mobile, git flow, atalhos de teclado |
+| Fase | Tema | Entregável | Status |
+|---|---|---|---|
+| **1** | [Vault & Parser](./fases/fase-1-vault-parser.md) | Abrir vault, criar nota do dia, salvar `.md` real, parsear frontmatter/tasks/agenda/links | ✅ Concluída |
+| **2** | [Daily View](./fases/fase-2-daily-view.md) | Editor rico (`/` e `@`), ver tasks parseadas, marcar como feita (atualiza o `.md`) | ⬜ A fazer |
+| **3** | [Notas & Links](./fases/fase-3-notas-links.md) | Notas livres, `[[wikilinks]]`, backlinks, criar nota via link | ⬜ A fazer |
+| **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto | ⬜ A fazer |
+| **5** | [Polimento](./fases/fase-5-polimento.md) | Tema, mobile, git flow, atalhos de teclado | ⬜ A fazer |
 
 As fases são sequenciais: cada uma entrega algo usável e desbloqueia a próxima. Detalhes de dependência em [`fases/README.md`](./fases/README.md).
 

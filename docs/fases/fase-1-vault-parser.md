@@ -44,20 +44,22 @@ Estabelecer a camada que lê/escreve arquivos do vault e transforma markdown (fr
 
 ## Dados / contratos importantes
 
-- Tipos em [`src/types/vault.ts`](../../src/types/vault.ts): `Task`, `AgendaItem`, `DailyIndex`, `VaultMeta`. **A introduzir:** `Note` (nó: `id`, `title`, `type`, `tags`, `created`, `aliases`, `path`, `links`, `backlinks`).
+- Tipos em [`src/types/vault.ts`](../../src/types/vault.ts): `Task`, `AgendaItem`, `DailyIndex`, `VaultMeta`, `Note` (nó: `id`, `title`, `type`, `tags`, `created`, `aliases`, `path`, `links`, `backlinks`), `LinkGraph`.
 - Frontmatter, sintaxe e resolução de links: ver [`../arquitetura.md`](../arquitetura.md).
-- `sourceFile` é caminho relativo ao vault; `sourceLine` **decidir** 0-based vs 1-based (sugestão: 1-based, igual editores).
-- `id` de task: hash de `sourceFile:sourceLine`. Mover linha muda id — aceitável (índice reconstruído a cada scan).
-- `id` de nó: ULID no frontmatter — estável no rename.
+- `sourceFile` é caminho relativo ao vault; `sourceLine` **1-based** (decidido).
+- `id` de task: hash FNV-1a de `sourceFile:sourceLine` → base36. Mover linha muda id — aceitável (índice reconstruído a cada scan).
+- `id` de nó: ULID no frontmatter — estável no rename (decidido).
 
 ## Entregável (definição de pronto)
 
-- [ ] Abrir vault via picker, permissão concedida, handle persiste entre reloads.
-- [ ] Criar nota do dia gera `daily/YYYY-MM-DD/notes.md` real no disco.
-- [ ] Frontmatter lido via gray-matter; injeção lazy de `id` na primeira escrita.
-- [ ] Parser converte markdown de exemplo em `Task[]`, `AgendaItem[]` e lista de `[[links]]` corretos.
-- [ ] `indexer` reconstrói `meta/tasks.json`, `projects.json` e `links.json` a partir dos `.md`.
-- [ ] `parser.test.ts` cobre: task simples, agendada, com projeto, feita, agenda com horário/duração, linha não-task, link `[[...]]`. Round-trip de reescrita `[ ]`↔`[x]` preserva a linha **e o frontmatter**.
+- [x] Abrir vault via picker, permissão concedida, handle persiste entre reloads. → `vault.ts` (`openVault`/`restoreVault`/`verifyPermission`) + `idb.ts`.
+- [x] Criar nota do dia gera `daily/YYYY-MM-DD/notes.md` real no disco. → `ensureDailyNote`.
+- [x] Frontmatter lido via gray-matter; injeção lazy de `id` na primeira escrita. → `frontmatter.ts`.
+- [x] Parser converte markdown de exemplo em `Task[]`, `AgendaItem[]` e lista de `[[links]]` corretos. → `parser.ts`.
+- [x] `indexer` reconstrói `meta/tasks.json`, `projects.json` e `links.json` a partir dos `.md`. → `indexer.ts` (`reindexVault`).
+- [x] `parser.test.ts` cobre: task simples, agendada, com projeto, feita, agenda com horário/duração, linha não-task, link `[[...]]`. Round-trip de reescrita `[ ]`↔`[x]` preserva a linha **e o frontmatter**.
+
+> **Concluído.** Núcleo puro (`frontmatter.ts`, `parser.ts`) em `c0e3532`; camada browser (`idb.ts`, `vault.ts`, `indexer.ts`) em `7c93c13`. 35 testes verde. Lógica browser testada à mão no Chrome (não roda em happy-dom).
 
 ## Riscos
 
