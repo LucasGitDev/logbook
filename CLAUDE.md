@@ -6,19 +6,32 @@ Interface web (React + Vite) que lê e escreve arquivos reais no sistema de arqu
 ## Stack
 
 - **Vite + React + TypeScript** — bundler e framework
-- **Tailwind CSS** — estilização
+- **Tailwind CSS v4** — estilização (config CSS-first em `src/styles/globals.css`)
+- **TanStack Router** (file-based, `src/routes/`) + **TanStack Query** — rotas e cache async
+- **Zustand** — estado de UI (`src/stores/`)
+- **Biome** — lint e format
+- **Vitest + React Testing Library** — testes (env happy-dom)
 - **File System Access API** — leitura/escrita de arquivos locais (sem backend)
 - Sem banco de dados — markdown é a fonte de verdade, JSON é índice derivado
+- Gerenciador de pacotes: **pnpm**
 
 ## Comandos
 
 ```bash
-npm run dev      # dev server (localhost:5173)
-npm run build    # build de produção
-npm run preview  # preview do build
-npm run lint     # ESLint
-npm run typecheck # tsc --noEmit
+pnpm dev          # dev server (localhost:5173)
+pnpm build        # build de produção (tsc -b && vite build)
+pnpm preview      # preview do build
+pnpm lint         # biome check .
+pnpm format       # biome format --write .
+pnpm typecheck    # tsc -b --noEmit
+pnpm test         # vitest (watch)
+pnpm test:run     # vitest run (single)
+pnpm test:ui      # vitest --ui
 ```
+
+Rodar um teste só: `pnpm test:run src/lib/parser.test.ts` ou filtrar por nome `pnpm test -t "scheduled task"`.
+
+Testes ficam ao lado do código (`*.test.ts` / `*.test.tsx`). Setup global em `src/test/setup.ts`.
 
 ## Estrutura do Vault (arquivos gerados pelo app)
 
