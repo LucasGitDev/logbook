@@ -28,6 +28,22 @@ export interface AgendaItem {
 	sourceLine: number;
 }
 
+// ─── Note (nó) ───────────────────────────────────────────────────────────────
+
+export type NoteType = "daily" | "note";
+
+export interface Note {
+	id: string; // ULID do frontmatter — estável no rename
+	title: string;
+	type: NoteType;
+	tags: string[];
+	created: string; // YYYY-MM-DD
+	aliases: string[];
+	path: string; // caminho relativo ao vault
+	links: string[]; // [[nomes]] que este nó aponta (saída)
+	backlinks: string[]; // derivado — preenchido pelo indexer, vazio no parse
+}
+
 // ─── Daily ───────────────────────────────────────────────────────────────────
 
 export interface DailyIndex {
