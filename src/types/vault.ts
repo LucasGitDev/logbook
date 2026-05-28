@@ -75,5 +75,6 @@ export interface VaultState {
 	tasks: Task[];
 	agendaItems: AgendaItem[];
 	projects: Project[];
+	notes: Note[];
 	isLoaded: boolean;
 }
