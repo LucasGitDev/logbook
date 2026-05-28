@@ -1,45 +1,45 @@
 {
-  "name": "diario-de-bordo",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit",
-    "lint": "biome check .",
-    "format": "biome format --write .",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:ui": "vitest --ui"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "@tanstack/react-query": "^5.100.14",
-    "@tanstack/react-router": "^1.170.8",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "tailwindcss": "^4.3.0",
-    "zustand": "^5.0.14"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.16",
-    "@tanstack/react-query-devtools": "^5.100.14",
-    "@tanstack/react-router-devtools": "^1.167.0",
-    "@tanstack/router-plugin": "^1.168.11",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/wicg-file-system-access": "^2023.10.7",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/ui": "^4.1.7",
-    "happy-dom": "^20.9.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.0.12",
-    "vitest": "^4.1.7"
-  }
+	"name": "diario-de-bordo",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc -b --noEmit",
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"test": "vitest",
+		"test:run": "vitest run",
+		"test:ui": "vitest --ui"
+	},
+	"dependencies": {
+		"@tailwindcss/vite": "^4.3.0",
+		"@tanstack/react-query": "^5.100.14",
+		"@tanstack/react-router": "^1.170.8",
+		"react": "^19.2.6",
+		"react-dom": "^19.2.6",
+		"tailwindcss": "^4.3.0",
+		"zustand": "^5.0.14"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.16",
+		"@tanstack/react-query-devtools": "^5.100.14",
+		"@tanstack/react-router-devtools": "^1.167.0",
+		"@tanstack/router-plugin": "^1.168.11",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
+		"@types/node": "^24.12.3",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@types/wicg-file-system-access": "^2023.10.7",
+		"@vitejs/plugin-react": "^6.0.1",
+		"@vitest/ui": "^4.1.7",
+		"happy-dom": "^20.9.0",
+		"typescript": "~6.0.2",
+		"vite": "^8.0.12",
+		"vitest": "^4.1.7"
+	}
 }
