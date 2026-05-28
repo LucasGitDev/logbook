@@ -64,6 +64,10 @@ export interface VaultMeta {
 	lastOpened: string; // ISO datetime
 }
 
+// Grafo de links derivado: nome do nó alvo ([[nome]]) → caminhos dos nós que
+// apontam pra ele (backlinks). Reconstruído a cada scan, nunca no frontmatter.
+export type LinkGraph = Record<string, string[]>;
+
 // ─── Estado global do app ────────────────────────────────────────────────────
 
 export interface VaultState {
