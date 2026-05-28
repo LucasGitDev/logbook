@@ -8,6 +8,7 @@ import type {
 	AgendaItem,
 	DailyIndex,
 	LinkGraph,
+	Note,
 	NoteType,
 	Project,
 	Task,
@@ -16,14 +17,10 @@ import { parseFrontmatter } from "./frontmatter";
 import { parseNoteBody } from "./parser";
 import { listNoteFiles, readFile, writeJson } from "./vault";
 
-export interface ParsedNote {
-	path: string; // relativo ao vault
+export interface ParsedNote extends Note {
 	date: string | null; // YYYY-MM-DD se for nó do dia
-	title: string;
-	type: NoteType;
 	tasks: Task[];
 	agenda: AgendaItem[];
-	links: string[];
 }
 
 const DAILY_PATH_RE = /^daily\/(\d{4}-\d{2}-\d{2})\//;
@@ -31,6 +28,15 @@ const DAILY_PATH_RE = /^daily\/(\d{4}-\d{2}-\d{2})\//;
 /** Extrai a data de um caminho de nó do dia, ou null. */
 export function dailyDateFromPath(path: string): string | null {
 	return DAILY_PATH_RE.exec(path)?.[1] ?? null;
+}
+
+/** Calcula quantas linhas o bloco de frontmatter ocupa (incluindo o --- final). */
+export function calculateFrontmatterLines(raw: string): number {
+	if (!raw.startsWith("---")) return 0;
+	const lines = raw.split(/\r?\n/);
+	const closingIndex = lines.indexOf("---", 1);
+	if (closingIndex === -1) return 0;
+	return closingIndex + 1;
 }
 
 /** Parseia o conteúdo bruto de um nó (frontmatter + corpo) → ParsedNote. Puro. */
@@ -44,7 +50,32 @@ export function parseNoteContent(path: string, raw: string): ParsedNote {
 		typeof data.title === "string" && data.title
 			? data.title
 			: fileBaseName(path);
-	return { path, date, title, type, tasks, agenda, links };
+
+	// Ajusta os números de linha se houver frontmatter
+	const offset = calculateFrontmatterLines(raw);
+	if (offset > 0) {
+		for (const t of tasks) {
+			t.sourceLine += offset;
+		}
+		for (const a of agenda) {
+			a.sourceLine += offset;
+		}
+	}
+
+	return {
+		id: typeof data.id === "string" ? data.id : "",
+		title,
+		type,
+		tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+		created: createdDate,
+		aliases: Array.isArray(data.aliases) ? (data.aliases as string[]) : [],
+		path,
+		links,
+		backlinks: [],
+		date,
+		tasks,
+		agenda,
+	} as ParsedNote;
 }
 
 // gray-matter (js-yaml) parseia `created: 2026-05-01` como Date — normaliza p/ YYYY-MM-DD.
@@ -110,6 +141,7 @@ export interface VaultIndex {
 	tasks: Task[];
 	projects: Project[];
 	links: LinkGraph;
+	agendaItems: AgendaItem[];
 }
 
 /**
@@ -130,12 +162,12 @@ export async function reindexVault(
 	const tasks = buildTaskIndex(notes);
 	const projects = buildProjectIndex(tasks);
 	const links = buildLinkGraph(notes);
+	const agendaItems = notes.flatMap((n) => n.agenda);
 
 	await writeJson(root, "meta/tasks.json", tasks);
 	await writeJson(root, "meta/projects.json", projects);
 	await writeJson(root, "meta/links.json", links);
 
-	const agenda = notes.flatMap((n) => n.agenda);
 	const dates = new Set<string>();
 	for (const note of notes) if (note.date) dates.add(note.date);
 	for (const date of dates) {
@@ -147,9 +179,9 @@ export async function reindexVault(
 		await writeJson(
 			root,
 			`daily/${date}/agenda.json`,
-			agenda.filter((a) => a.date === date),
+			agendaItems.filter((a) => a.date === date),
 		);
 	}
 
-	return { notes, tasks, projects, links };
+	return { notes, tasks, projects, links, agendaItems };
 }

@@ -73,7 +73,12 @@ export async function readFile(
 		const file = await fileHandle.getFile();
 		return await file.text();
 	} catch (err) {
-		if (err instanceof DOMException && err.name === "NotFoundError")
+		if (
+			err &&
+			typeof err === "object" &&
+			"name" in err &&
+			err.name === "NotFoundError"
+		)
 			return null;
 		throw err;
 	}
@@ -108,13 +113,18 @@ export async function fileExists(
 
 // ─── JSON (meta/*) ──────────────────────────────────────────────────────────────
 
-/** Lê e parseia JSON; null se não existir. */
 export async function readJson<T>(
 	root: FileSystemDirectoryHandle,
 	relPath: string,
 ): Promise<T | null> {
-	const raw = await readFile(root, relPath);
-	return raw === null ? null : (JSON.parse(raw) as T);
+	try {
+		const raw = await readFile(root, relPath);
+		if (raw === null || raw.trim() === "") return null;
+		return JSON.parse(raw) as T;
+	} catch (err) {
+		console.warn(`Erro ao ler ou parsear JSON em ${relPath}:`, err);
+		return null;
+	}
 }
 
 /** Serializa JSON com indentação (diff git-friendly) e escreve. */
