@@ -41,13 +41,13 @@ Construir a tela de uso diário: escrever a nota do dia num editor estilo Notion
 
 ## Entregável (definição de pronto)
 
-- [ ] Escrever na nota e salvar persiste no `.md` real.
-- [ ] `/` insere marcadores; `#` autocompleta projetos; emoji nunca digitado à mão.
-- [ ] Emojis/links renderizam como chips no editor.
-- [ ] Tasks parseadas aparecem na lista do dia.
-- [ ] Marcar task como feita atualiza o `.md` (`[ ]`→`[x]`) e a UI reflete.
-- [ ] Agenda do dia aparece ordenada por horário.
-- [ ] Sidebar lista dias anteriores e navega entre eles.
+- [x] Escrever na nota e salvar persiste no `.md` real.
+- [x] `/` insere marcadores; `#` autocompleta projetos; emoji nunca digitado à mão.
+- [x] Emojis/links renderizam como chips no editor.
+- [x] Tasks parseadas aparecem na lista do dia.
+- [x] Marcar task como feita atualiza o `.md` (`[ ]`→`[x]`) e a UI reflete.
+- [x] Agenda do dia aparece ordenada por horário.
+- [x] Sidebar lista dias anteriores e navega entre eles.
 
 ## Riscos
 

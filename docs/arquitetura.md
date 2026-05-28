@@ -153,6 +153,6 @@ Tipos canônicos em [`src/types/vault.ts`](../src/types/vault.ts). A introduzir 
 
 ## Decisões ainda pendentes
 
-- ~~**`sourceLine` 0-based vs 1-based** (Fase 1)~~ → **1-based** (decidido, Fase 1).
+- ~~**`sourceLine` 0-based vs 1-based** (Fase 1)~~ → **1-based** (decidido, Fase 1). *Importante: refere-se à linha real de todo o arquivo no disco (incluindo o bloco de frontmatter se houver), não apenas do corpo de texto. O offset do frontmatter é calculado e somado automaticamente no indexador.*
 - ~~**Formato do `id`**: ULID vs uuid v4~~ → **ULID** (decidido, Fase 1).
 - **Carry-over** (Fase 4): reescrever `📅` na origem vs. nova linha no destino. Detalhe na fase.
