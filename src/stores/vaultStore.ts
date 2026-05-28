@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { VaultState } from '../types/vault'
+import type { VaultState } from '@/types/vault'
 
 interface VaultStore extends VaultState {
   setRootHandle: (handle: FileSystemDirectoryHandle | null) => void

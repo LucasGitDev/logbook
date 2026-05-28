@@ -4,7 +4,12 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "wicg-file-system-access"
+    ],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -15,9 +20,17 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path alias */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
