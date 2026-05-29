@@ -65,10 +65,14 @@ function Home() {
 	};
 
 	const handleOpenRecentVault = async () => {
+		if (!recentHandle) return;
 		setError(null);
 		setIsLoading(true);
 		try {
-			const handle = await restoreVault();
+			// Passa o handle já pré-carregado (mount) — NÃO ler IndexedDB aqui:
+			// requestPermission precisa de transient activation do clique, e um
+			// await de I/O antes dele pode gastar a janela (prompt some no Arc).
+			const handle = await restoreVault(recentHandle);
 			if (handle) {
 				setRootHandle(handle);
 			} else {

@@ -3,7 +3,7 @@
 // string de conteúdo). Chrome/Edge only.
 
 import type { VaultMeta } from "@/types/vault";
-import { loadVaultHandle, saveVaultHandle } from "./idb";
+import { saveVaultHandle } from "./idb";
 
 const SCHEMA_VERSION = 1;
 
@@ -230,10 +230,19 @@ export async function openVault(): Promise<FileSystemDirectoryHandle | null> {
 	return handle;
 }
 
-/** Reabre o vault salvo, re-pedindo permissão. Null se nenhum ou negado. */
-export async function restoreVault(): Promise<FileSystemDirectoryHandle | null> {
-	const handle = await loadVaultHandle();
-	if (!handle) return null;
+/**
+ * Reabre um vault a partir de um handle JÁ carregado (do IndexedDB, no mount).
+ *
+ * IMPORTANTE: recebe o handle por parâmetro de propósito. `requestPermission`
+ * exige *transient user activation* (clique recente) e a janela de ativação é
+ * curta — ler o IndexedDB aqui (await) gastaria essa janela e o prompt poderia
+ * não aparecer (sintoma observado no Arc). Então o caller passa o handle
+ * pré-carregado e chamamos `verifyPermission` como primeiro await, antes de
+ * qualquer bootstrap/I/O. Null se permissão negada.
+ */
+export async function restoreVault(
+	handle: FileSystemDirectoryHandle,
+): Promise<FileSystemDirectoryHandle | null> {
 	if (!(await verifyPermission(handle))) return null;
 	await bootstrapVault(handle);
 	return handle;
