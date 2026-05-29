@@ -23,6 +23,7 @@ export interface AgendaItem {
 	date: string; // 🗓️ YYYY-MM-DD
 	time: string; // ⏰ HH:MM
 	durationMin?: number; // ⏱️ em minutos
+	project?: string; // #tag
 	status: TaskStatus;
 	sourceFile: string;
 	sourceLine: number;
