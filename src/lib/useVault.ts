@@ -11,7 +11,7 @@ import {
 	writeFile,
 } from "@/lib/vault";
 import { useVaultStore } from "@/stores/vaultStore";
-import type { AgendaItem, Note, Task, TaskStatus } from "@/types/vault";
+import type { AgendaItem, Task, TaskStatus } from "@/types/vault";
 
 /** Hook para recarregar o índice do vault quando o rootHandle mudar */
 export function useVaultIndex() {
@@ -74,20 +74,8 @@ export function useNote(id: string) {
 	});
 }
 
-/** Resolve um nome de wikilink (título ou alias) para um nó do vault de forma case-insensitive */
-export function resolveLinkTarget(
-	notes: Note[],
-	targetName: string,
-): Note | null {
-	const lower = targetName.trim().toLowerCase();
-	return (
-		notes.find((n) => {
-			if (n.title.toLowerCase() === lower) return true;
-			if (n.aliases.some((alias) => alias.toLowerCase() === lower)) return true;
-			return false;
-		}) ?? null
-	);
-}
+// resolveLinkTarget foi movido para ./notes (puro/testável); re-exporta p/ compat.
+export { resolveLinkTarget } from "./notes";
 
 /** Hook para carregar as tasks de um dia específico (lendo reativamente do store Zustand) */
 export function useDailyTasks(date: string) {

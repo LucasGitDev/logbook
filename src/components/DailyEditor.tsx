@@ -1,5 +1,6 @@
 import {
 	autocompletion,
+	type Completion,
 	type CompletionContext,
 	type CompletionResult,
 } from "@codemirror/autocomplete";
@@ -17,6 +18,7 @@ import { basicSetup, EditorView } from "codemirror";
 import { useCallback, useEffect, useRef } from "react";
 import { getLocalDateString } from "@/lib/dates";
 import { dailyDateFromPath } from "@/lib/indexer";
+import { createNote } from "@/lib/notes";
 import { useSaveNote } from "@/lib/useVault";
 import { useVaultStore } from "@/stores/vaultStore";
 
@@ -403,16 +405,42 @@ const customCompletionSource = (
 	}
 
 	if (trigger === "@") {
-		return {
-			from: word.from,
-			options: store.notes
-				.filter((n) => n.title.toLowerCase().includes(query))
-				.map((n) => ({
-					label: n.title,
-					apply: `[[${n.title}]] `,
-					type: "variable",
-				})),
-		};
+		const rawQuery = word.text.slice(1).trim();
+		const options: Completion[] = store.notes
+			.filter((n) => n.title.toLowerCase().includes(query))
+			.map((n) => ({
+				label: n.title,
+				apply: `[[${n.title}]] `,
+				type: "variable",
+			}));
+
+		// Se o texto digitado não casa exatamente com uma nota existente,
+		// oferece criar uma nota nova (insere o link + cria o arquivo).
+		const hasExact = store.notes.some(
+			(n) => n.title.toLowerCase() === rawQuery.toLowerCase(),
+		);
+		if (rawQuery.length > 0 && !hasExact) {
+			options.push({
+				label: `Criar nota: ${rawQuery}`,
+				detail: "nova",
+				type: "text",
+				apply: (view, _completion, from, to) => {
+					view.dispatch({
+						changes: { from, to, insert: `[[${rawQuery}]] ` },
+					});
+					const root = useVaultStore.getState().rootHandle;
+					if (root) {
+						createNote(root, rawQuery)
+							.then(({ index }) => {
+								useVaultStore.getState().setVaultData(index);
+							})
+							.catch((err) => console.error("Erro ao criar nota:", err));
+					}
+				},
+			});
+		}
+
+		return { from: word.from, options };
 	}
 
 	if (trigger === "#") {

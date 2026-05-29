@@ -5,7 +5,7 @@ import { getLocalDateString } from "@/lib/dates";
 import { updateFrontmatterFields } from "@/lib/frontmatter";
 import { clearVaultHandle } from "@/lib/idb";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
-import { useSaveNote } from "@/lib/useVault";
+import { createNote } from "@/lib/notes";
 import { deleteFile, readFile, writeFile } from "@/lib/vault";
 import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -29,7 +29,6 @@ export function CommandPalette() {
 	const resetVault = useVaultStore((state) => state.reset);
 	const rootHandle = useVaultStore((state) => state.rootHandle);
 	const notes = useVaultStore((state) => state.notes);
-	const saveNoteMutation = useSaveNote();
 	const queryClient = useQueryClient();
 	const activeFilePath = useVaultStore((state) => state.activeFilePath);
 
@@ -100,25 +99,21 @@ export function CommandPalette() {
 		);
 		if (!title) return;
 		const cleanTitle = title.trim();
-		if (!cleanTitle) return;
+		if (!cleanTitle || !rootHandle) return;
 
-		const path = `notes/${cleanTitle}.md`;
-		saveNoteMutation.mutate(
-			{ path, content: `# ${cleanTitle}\n\n` },
-			{
-				onSuccess: ({ index }) => {
-					const newNote = index.notes.find((n) => n.path === path);
-					if (newNote) {
-						navigate({ to: "/note/$id", params: { id: newNote.id } });
-					}
-				},
-				onError: (err) => {
-					alert(
-						`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
-					);
-				},
-			},
-		);
+		createNote(rootHandle, cleanTitle)
+			.then(({ index, note }) => {
+				useVaultStore.getState().setVaultData(index);
+				queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+				if (note) {
+					navigate({ to: "/note/$id", params: { id: note.id } });
+				}
+			})
+			.catch((err) => {
+				alert(
+					`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
+				);
+			});
 	};
 
 	const handleRenameActiveNote = async () => {

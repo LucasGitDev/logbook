@@ -7,12 +7,8 @@ import { DailyEditor } from "@/components/DailyEditor";
 import { Sidebar } from "@/components/Sidebar";
 import { Statusbar } from "@/components/Statusbar";
 import { Topbar } from "@/components/Topbar";
-import {
-	resolveLinkTarget,
-	useNote,
-	useSaveNote,
-	useVaultIndex,
-} from "@/lib/useVault";
+import { createNote, resolveLinkTarget } from "@/lib/notes";
+import { useNote, useVaultIndex } from "@/lib/useVault";
 import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
 
@@ -23,7 +19,6 @@ export const Route = createFileRoute("/note/$id")({
 function NoteView() {
 	const { id } = Route.useParams();
 	const navigate = useNavigate();
-	const saveNoteMutation = useSaveNote();
 
 	const isLoaded = useVaultStore((state) => state.isLoaded);
 	const sidebarOpen = useUIStore((state) => state.sidebarOpen);
@@ -84,24 +79,19 @@ function NoteView() {
 			const create = confirm(
 				`A nota "${noteName}" não existe. Deseja criá-la agora?`,
 			);
-			if (create) {
-				const path = `notes/${noteName}.md`;
-				saveNoteMutation.mutate(
-					{ path, content: `# ${noteName}\n\n` },
-					{
-						onSuccess: ({ index }) => {
-							const newNote = resolveLinkTarget(index.notes, noteName);
-							if (newNote) {
-								navigate({ to: "/note/$id", params: { id: newNote.id } });
-							}
-						},
-						onError: (err) => {
-							alert(
-								`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
-							);
-						},
-					},
-				);
+			if (create && store.rootHandle) {
+				createNote(store.rootHandle, noteName)
+					.then(({ index, note }) => {
+						useVaultStore.getState().setVaultData(index);
+						if (note) {
+							navigate({ to: "/note/$id", params: { id: note.id } });
+						}
+					})
+					.catch((err) => {
+						alert(
+							`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
+						);
+					});
 			}
 		}
 	};

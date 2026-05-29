@@ -8,12 +8,11 @@ import { Sidebar } from "@/components/Sidebar";
 import { Statusbar } from "@/components/Statusbar";
 import { TaskList } from "@/components/TaskList";
 import { Topbar } from "@/components/Topbar";
+import { createNote, resolveLinkTarget } from "@/lib/notes";
 import {
-	resolveLinkTarget,
 	useDailyAgenda,
 	useDailyNote,
 	useDailyTasks,
-	useSaveNote,
 	useVaultIndex,
 } from "@/lib/useVault";
 import { dailyNotePath } from "@/lib/vault";
@@ -30,9 +29,9 @@ function DailyView() {
 
 	const isLoaded = useVaultStore((state) => state.isLoaded);
 	const notes = useVaultStore((state) => state.notes);
+	const rootHandle = useVaultStore((state) => state.rootHandle);
 	const sidebarOpen = useUIStore((state) => state.sidebarOpen);
 	const panelOpen = useUIStore((state) => state.panelOpen);
-	const saveNoteMutation = useSaveNote();
 
 	// Sempre ativa o re-indexador automático quando o vault está carregado
 	const { isLoading: isIndexing } = useVaultIndex();
@@ -104,30 +103,22 @@ function DailyView() {
 									const create = confirm(
 										`A nota "${noteName}" não existe. Deseja criá-la agora?`,
 									);
-									if (create) {
-										const path = `notes/${noteName}.md`;
-										saveNoteMutation.mutate(
-											{ path, content: `# ${noteName}\n\n` },
-											{
-												onSuccess: ({ index }) => {
-													const newNote = resolveLinkTarget(
-														index.notes,
-														noteName,
-													);
-													if (newNote) {
-														navigate({
-															to: "/note/$id",
-															params: { id: newNote.id },
-														});
-													}
-												},
-												onError: (err) => {
-													alert(
-														`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
-													);
-												},
-											},
-										);
+									if (create && rootHandle) {
+										createNote(rootHandle, noteName)
+											.then(({ index, note }) => {
+												useVaultStore.getState().setVaultData(index);
+												if (note) {
+													navigate({
+														to: "/note/$id",
+														params: { id: note.id },
+													});
+												}
+											})
+											.catch((err) => {
+												alert(
+													`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
+												);
+											});
 									}
 								}
 							}}

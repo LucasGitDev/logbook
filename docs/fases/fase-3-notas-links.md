@@ -32,18 +32,19 @@ Sair de "só daily notes" para um grafo de nós estilo Obsidian: criar notas liv
 - `meta/links.json`: grafo derivado nó→backlinks. Reconstruído a cada scan, nunca editado à mão.
 - Resolução de link por `id`+`aliases`, exibição por nome. Ver [`../arquitetura.md`](../arquitetura.md#resolução-de-links).
 
-### Decisões pendentes
-- **Endereçamento de rota:** por `id` (estável, feio na URL) vs `slug` do título (legível, muda no rename). Sugestão: `id` na rota, slug só cosmético.
-- **Rewrite de `[[nome]]` no rename:** fazer agora (igual Obsidian) ou deixar o `id` resolver e adiar. Sugestão: adiar — `id` já resolve.
+### Decisões (resolvidas)
+- **Endereçamento de rota:** por **`id`** (`route note.$id`) — decidido.
+- **Rewrite de `[[nome]]` no rename:** **adiado** — o rename adiciona o título antigo aos `aliases` e a resolução por título/alias mantém os links vivos; nenhum `.md` de terceiros é reescrito.
+- **Resolução de link:** por **nome (título/alias), case-insensitive** (`resolveLinkTarget`), não por `id` cru gravado no link. Rename-safe via acúmulo de aliases.
 
 ## Entregável (definição de pronto)
 
-- [ ] Criar nota livre sob `notes/` com frontmatter (lazy).
-- [ ] `@` no editor lista notas e insere `[[nome]]`.
-- [ ] Clicar num link navega pro nó (resolvido por `id`).
-- [ ] Link quebrado oferece criar a nota.
-- [ ] Painel de backlinks mostra quem aponta pra nota.
-- [ ] Renomear nota não quebra links existentes.
+- [x] Criar nota livre sob `notes/` com frontmatter (lazy). *(`createNote` em `src/lib/notes.ts`; `⌘K` "Nova nota livre".)*
+- [x] `@` no editor lista notas e insere `[[nome]]`; sem match, oferece "Criar nota: <texto>" inline. *(`DailyEditor`.)*
+- [x] Clicar num link navega pro nó (resolvido por título/alias, rename-safe).
+- [x] Link quebrado oferece criar a nota (`confirm` nativo).
+- [x] Painel de backlinks mostra quem aponta pra nota (`BacklinksView`, lê `links.json`).
+- [x] Renomear nota não quebra links existentes (título antigo vira alias).
 
 ## Riscos
 
