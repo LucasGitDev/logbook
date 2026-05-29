@@ -26,7 +26,7 @@ import {
 	WidgetType,
 } from "@codemirror/view";
 import { useCallback, useEffect, useRef } from "react";
-import { getLocalDateString } from "@/lib/dates";
+import { addDays, getLocalDateString } from "@/lib/dates";
 import { dailyDateFromPath } from "@/lib/indexer";
 import { createNote } from "@/lib/notes";
 import { useSaveNote } from "@/lib/useVault";
@@ -69,6 +69,9 @@ class ChipWidget extends WidgetType {
 			span.innerHTML = `<span class="cm-chip-icon">#</span>${cleanText}`;
 		} else if (this.type === "link") {
 			cleanText = this.text.replace(/^\[\[/, "").replace(/\]\]$/, "");
+			// Guarda o nome limpo num data-attr: o innerText inclui o ícone 🔗 e
+			// quebraria a resolução do link no clique.
+			span.dataset.link = cleanText;
 			span.innerHTML = `<span class="cm-chip-icon">🔗</span> ${cleanText}`;
 		} else {
 			span.textContent = this.text;
@@ -420,20 +423,51 @@ export const customCompletionSource = (
 
 	if (trigger === "@") {
 		const rawQuery = word.text.slice(1).trim();
+
+		// 1. Notas livres (type: note) — linka por título.
 		const options: Completion[] = store.notes
-			.filter((n) => n.title.toLowerCase().includes(query))
+			.filter((n) => n.type === "note" && n.title.toLowerCase().includes(query))
 			.map((n) => ({
 				label: n.title,
 				apply: `[[${n.title}]] `,
 				type: "variable",
 			}));
 
-		// Se o texto digitado não casa exatamente com uma nota existente,
-		// oferece criar uma nota nova (insere o link + cria o arquivo).
+		// 2. Dias (nós daily) — linka pela data ISO ([[YYYY-MM-DD]] resolve no
+		// clique via regex de data). Sempre oferece Hoje/Ontem; demais dias só
+		// quando há query (evita poluir com o histórico inteiro).
+		const todayStr = getLocalDateString();
+		const yestStr = addDays(todayStr, -1);
+		const dayDates = new Set<string>([todayStr, yestStr]);
+		for (const n of store.notes) {
+			if (n.type !== "daily") continue;
+			const d = dailyDateFromPath(n.path);
+			if (d) dayDates.add(d);
+		}
+		const dayLabel = (d: string) =>
+			d === todayStr ? `Hoje · ${d}` : d === yestStr ? `Ontem · ${d}` : d;
+		const dayOptions: Completion[] = [...dayDates]
+			.filter((d) =>
+				query.length === 0
+					? d === todayStr || d === yestStr
+					: d.includes(query) || dayLabel(d).toLowerCase().includes(query),
+			)
+			.sort((a, b) => b.localeCompare(a))
+			.map((d) => ({
+				label: `📅 ${dayLabel(d)}`,
+				detail: "dia",
+				apply: `[[${d}]] `,
+				type: "variable",
+			}));
+		options.push(...dayOptions);
+
+		// 3. Se não casa exatamente com nota existente nem é uma data, oferece
+		// criar uma nota nova (insere o link + cria o arquivo).
+		const isIsoDate = /^\d{4}-\d{2}-\d{2}$/.test(rawQuery);
 		const hasExact = store.notes.some(
 			(n) => n.title.toLowerCase() === rawQuery.toLowerCase(),
 		);
-		if (rawQuery.length > 0 && !hasExact) {
+		if (rawQuery.length > 0 && !hasExact && !isIsoDate) {
 			options.push({
 				label: `Criar nota: ${rawQuery}`,
 				detail: "nova",
@@ -605,10 +639,11 @@ export function DailyEditor({
 				const target = event.target as HTMLElement;
 				const linkChip = target.closest(".cm-chip-link");
 				if (linkChip instanceof HTMLElement) {
-					const cleanLink = linkChip.innerText
-						.replace(/^\[\[/, "")
-						.replace(/\]\]$/, "")
-						.trim();
+					// dataset.link tem o nome limpo (innerText traria o ícone 🔗 junto).
+					const cleanLink = (
+						linkChip.dataset.link ??
+						linkChip.innerText.replace(/^\[\[/, "").replace(/\]\]$/, "")
+					).trim();
 					if (onLinkClickRef.current) {
 						onLinkClickRef.current(cleanLink);
 					}
