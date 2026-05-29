@@ -1,19 +1,30 @@
 import {
+	autocompletion,
 	type Completion,
 	type CompletionContext,
 	type CompletionResult,
+	completionKeymap,
 } from "@codemirror/autocomplete";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
-import { syntaxTree } from "@codemirror/language";
+import {
+	defaultHighlightStyle,
+	indentOnInput,
+	syntaxHighlighting,
+	syntaxTree,
+} from "@codemirror/language";
 import { EditorState, type Range, StateField } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
+	drawSelection,
+	EditorView,
+	keymap,
+	tooltips,
 	ViewPlugin,
 	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
-import { basicSetup, EditorView } from "codemirror";
 import { useCallback, useEffect, useRef } from "react";
 import { getLocalDateString } from "@/lib/dates";
 import { dailyDateFromPath } from "@/lib/indexer";
@@ -600,18 +611,25 @@ export function DailyEditor({
 			},
 		});
 
-		const md = markdown();
 		const view = new EditorView({
 			state: EditorState.create({
 				doc: currentContentRef.current,
+				// Setup explícito (sem basicSetup) — um ÚNICO autocompletion, então
+				// o override (nossa fonte / @ #) sempre se aplica. Sem gutter de
+				// número de linha/fold (feel Notion).
 				extensions: [
-					basicSetup,
-					md,
-					// Registra a fonte de autocomplete (/ @ #) via language data.
-					// basicSetup já inclui autocompletion(); um 2º autocompletion()
-					// duplicaria a config e o override seria ignorado (sintoma:
-					// nenhum popup ao digitar / ou @).
-					md.language.data.of({ autocomplete: customCompletionSource }),
+					history(),
+					drawSelection(),
+					// tooltip no body — evita ser clipado pelos overflow dos painéis
+					tooltips({ parent: document.body }),
+					indentOnInput(),
+					syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+					keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap]),
+					autocompletion({
+						override: [customCompletionSource],
+						activateOnTyping: true,
+					}),
+					markdown(),
 					chipPlugin,
 					livePreviewPlugin,
 					hrField,
