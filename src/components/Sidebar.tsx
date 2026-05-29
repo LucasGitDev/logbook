@@ -1,27 +1,35 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	Calendar,
 	ChevronRight,
 	Compass,
 	FileText,
 	FolderCheck,
+	Inbox,
+	LayoutGrid,
 	LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { getLocalDateString } from "@/lib/dates";
 import { clearVaultHandle } from "@/lib/idb";
+import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
 
-interface SidebarProps {
-	selectedDate?: string;
-	activeNoteId?: string;
-}
-
-export function Sidebar({ selectedDate, activeNoteId }: SidebarProps) {
+export function Sidebar() {
 	const navigate = useNavigate();
 	const rootHandle = useVaultStore((state) => state.rootHandle);
 	const resetVault = useVaultStore((state) => state.reset);
+	const clearTabs = useUIStore((state) => state.clearTabs);
 	const [customDate, setCustomDate] = useState("");
+
+	// Estado ativo derivado da rota atual (sidebar é compartilhada na casca).
+	const pathname = useRouterState({
+		select: (s) => s.location.pathname,
+	});
+	const selectedDate = pathname.match(/^\/daily\/(.+)$/)?.[1];
+	const activeNoteId = pathname.match(/^\/note\/(.+)$/)?.[1];
+	const isInboxActive = pathname === "/inbox";
+	const isWeekActive = pathname === "/week";
 
 	const today = new Date();
 	const todayStr = getLocalDateString();
@@ -74,6 +82,7 @@ export function Sidebar({ selectedDate, activeNoteId }: SidebarProps) {
 		// Limpa o handle persistido no IndexedDB e reseta o estado da store
 		clearVaultHandle();
 		resetVault();
+		clearTabs();
 		navigate({ to: "/" });
 	};
 
@@ -117,6 +126,40 @@ export function Sidebar({ selectedDate, activeNoteId }: SidebarProps) {
 
 				{/* Navigation Sections */}
 				<div className="flex-1 px-2.5 py-2 flex flex-col gap-5">
+					<div>
+						<h2 className="px-3 text-[10px] font-bold text-fg-5 uppercase tracking-widest mb-2 font-mono">
+							Visões
+						</h2>
+						<div className="flex flex-col gap-0.5">
+							<Link
+								to="/inbox"
+								className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-120 border-l-2 ${
+									isInboxActive
+										? "bg-accent/10 text-fg-strong border-l-accent font-medium"
+										: "text-fg-3 hover:bg-surface hover:text-fg-2 border-l-transparent"
+								}`}
+							>
+								<Inbox
+									className={`h-4 w-4 ${isInboxActive ? "text-accent-soft" : "text-fg-5"}`}
+								/>
+								Inbox
+							</Link>
+							<Link
+								to="/week"
+								className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-120 border-l-2 ${
+									isWeekActive
+										? "bg-accent/10 text-fg-strong border-l-accent font-medium"
+										: "text-fg-3 hover:bg-surface hover:text-fg-2 border-l-transparent"
+								}`}
+							>
+								<LayoutGrid
+									className={`h-4 w-4 ${isWeekActive ? "text-accent-soft" : "text-fg-5"}`}
+								/>
+								Semana
+							</Link>
+						</div>
+					</div>
+
 					<div>
 						<h2 className="px-3 text-[10px] font-bold text-fg-5 uppercase tracking-widest mb-2 font-mono">
 							Navegação Diária

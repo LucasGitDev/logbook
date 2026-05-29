@@ -222,6 +222,20 @@ export function CommandPalette() {
 			},
 		},
 		{
+			icon: "📥",
+			label: "Ver: Inbox",
+			action: () => {
+				navigate({ to: "/inbox" });
+			},
+		},
+		{
+			icon: "🗓️",
+			label: "Ver: Semana",
+			action: () => {
+				navigate({ to: "/week" });
+			},
+		},
+		{
 			icon: "➕",
 			label: "Nova nota livre",
 			keyHint: "⌘N",
