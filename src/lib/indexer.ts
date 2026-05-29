@@ -97,14 +97,17 @@ export function buildTaskIndex(notes: ParsedNote[]): Task[] {
 	return notes.flatMap((n) => n.tasks);
 }
 
-/** Projetos únicos vistos nas tasks (ordem de aparição). */
-export function buildProjectIndex(tasks: Task[]): Project[] {
+/** Projetos únicos vistos em tasks e agenda (ordem de aparição). */
+export function buildProjectIndex(
+	tasks: Task[],
+	agenda: AgendaItem[] = [],
+): Project[] {
 	const seen = new Set<string>();
 	const out: Project[] = [];
-	for (const t of tasks) {
-		if (t.project && !seen.has(t.project)) {
-			seen.add(t.project);
-			out.push({ tag: t.project });
+	for (const item of [...tasks, ...agenda]) {
+		if (item.project && !seen.has(item.project)) {
+			seen.add(item.project);
+			out.push({ tag: item.project });
 		}
 	}
 	return out;
@@ -160,9 +163,9 @@ export async function reindexVault(
 	}
 
 	const tasks = buildTaskIndex(notes);
-	const projects = buildProjectIndex(tasks);
-	const links = buildLinkGraph(notes);
 	const agendaItems = notes.flatMap((n) => n.agenda);
+	const projects = buildProjectIndex(tasks, agendaItems);
+	const links = buildLinkGraph(notes);
 
 	await writeJson(root, "meta/tasks.json", tasks);
 	await writeJson(root, "meta/projects.json", projects);

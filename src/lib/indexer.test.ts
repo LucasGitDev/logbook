@@ -75,6 +75,19 @@ describe("buildProjectIndex", () => {
 			{ tag: "app" },
 		]);
 	});
+
+	it("inclui projetos vindos da agenda", () => {
+		const note = parseNoteContent(
+			DAILY,
+			"- [ ] a #infra\n- [ ] 1:1 🗓️ 2026-05-28 ⏰ 10:00 #pessoas\n",
+		);
+		const tasks = buildTaskIndex([note]);
+		const agenda = note.agenda;
+		expect(buildProjectIndex(tasks, agenda)).toEqual([
+			{ tag: "infra" },
+			{ tag: "pessoas" },
+		]);
+	});
 });
 
 describe("buildLinkGraph", () => {
