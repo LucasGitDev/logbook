@@ -24,7 +24,7 @@ Edição estilo Notion: o usuário **nunca digita emoji nem `[[...]]` à mão** 
 | **2** | [Daily View](./fases/fase-2-daily-view.md) | Editor rico (`/` e `@`), ver tasks parseadas, marcar como feita (atualiza o `.md`) | ✅ Concluída |
 | **2.5** | [Redefinição UI/UX](./fases/fase-2.5-ui-ux.md) | 2 temas, editor Live Preview (Notion-like), casca dev (statusbar/topbar), `⌘K` | ✅ Concluída |
 | **3** | [Notas & Links](./fases/fase-3-notas-links.md) | Notas livres, `[[wikilinks]]`, backlinks, criar nota via link | ✅ Concluída |
-| **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto | ⬜ A fazer |
+| **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto, visão semanal, abas VSCode | ✅ Concluída |
 | **5** | [Polimento](./fases/fase-5-polimento.md) | Tema, mobile, git flow, atalhos de teclado | ⬜ A fazer |
 
 As fases são sequenciais: cada uma entrega algo usável e desbloqueia a próxima. Detalhes de dependência em [`fases/README.md`](./fases/README.md).

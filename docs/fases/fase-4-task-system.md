@@ -10,7 +10,7 @@ Transformar tasks isoladas por dia num sistema: tasks criadas hoje aparecem no d
 
 ### 1. Carry-over — jogar task pra amanhã / outro dia
 - Reagendar uma task aberta (mudar `📅`).
-- **Decisão de design em aberto** (resolver antes de codar): reescrever o `📅` na linha de origem, **ou** criar nova linha no dia destino? Ver abaixo.
+- **Decisão resolvida:** reescrever o `📅` **na linha de origem** (`setTaskScheduledDate` em `parser.ts`; mutation `useRescheduleTask`). UI: botões rápidos na linha da task (Amanhã / +1 semana / escolher data) em `TaskRow`.
 
 ### 2. `TaskInbox` — todas as tasks abertas
 - Visão agregada de tasks `open` em todos os dias.
@@ -35,15 +35,16 @@ Transformar tasks isoladas por dia num sistema: tasks criadas hoje aparecem no d
 | **Reescrever `📅` na origem** | Uma task = uma linha; histórico simples | Perde o registro de "estava agendada pra X"; muda o arquivo de origem |
 | **Nova linha no dia destino** | Preserva trilha; cada dia "possui" suas tasks | Duplica a task; precisa marcar a origem como movida (ex: `[>]`) |
 
-Recomendação inicial: **reescrever `📅` na origem** (mais simples, alinhado ao Obsidian Tasks). Revisitar se o histórico importar.
+**Decisão final: reescrever `📅` na origem** (mais simples, alinhado ao Obsidian Tasks). Revisitar se o histórico importar.
 
 ## Entregável (definição de pronto)
 
-- [ ] Criar task com `📅` futura → aparece automaticamente no dia agendado.
-- [ ] Reagendar (carry-over) uma task atualiza o `.md` conforme a decisão acima.
-- [ ] Inbox lista todas as tasks abertas de todos os dias.
-- [ ] Filtro por `#tag` funciona em tasks e agenda.
-- [ ] Visão semanal agrupa por dia.
+- [x] Criar task com `📅` futura → aparece automaticamente no dia agendado (`createdDate`×`scheduledDate` + `useDailyTasks`).
+- [x] Reagendar (carry-over) uma task reescreve só a linha de origem (`setTaskScheduledDate`, `useRescheduleTask`, botões em `TaskRow`).
+- [x] Inbox (`/inbox`) lista todas as tasks abertas, agrupadas (atrasadas/hoje/próximas/sem data — `groupInboxTasks`).
+- [x] Filtro por `#tag` (`ProjectFilter` + `filterTasksByProject`) aplica em tasks (Inbox/Semana) **e agenda** (Semana) — `AgendaItem.project` extraído pelo parser, projetos da agenda entram no índice.
+- [x] Visão semanal (`/week`) agrupa por dia (seg→dom) com tasks + agenda; nav prev/próx.
+- [x] Bônus: abas estilo VSCode (`TabBar` + layout route `_app`) — dias/notas/inbox/semana abrem como abas.
 
 ## Riscos
 

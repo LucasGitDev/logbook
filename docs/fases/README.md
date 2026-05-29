@@ -14,7 +14,7 @@ Parser     View        (Live Prev)  Links       System
 | [**2**](./fase-2-daily-view.md) | Daily View | A tela principal com editor rico | Editor `/`+`@`, ver tasks, marcar como feita (atualiza o `.md`), navegar dias | ✅ Concluída |
 | [**2.5**](./fase-2.5-ui-ux.md) | Redefinição UI/UX | Identidade dev + editor Live Preview | 2 temas, render markdown ao vivo (Notion-like), statusbar/topbar, `⌘K`, modo foco | ✅ Concluída |
 | [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link | ✅ Concluída |
-| [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; inbox; filtro por projeto; visão semanal | ⬜ A fazer |
+| [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; carry-over; inbox; filtro por projeto; visão semanal; abas VSCode | ✅ Concluída |
 | [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | App pronto pra uso diário: tema, responsivo, git, atalhos | ⬜ A fazer |
 
 ## Dependências entre objetivos
@@ -26,7 +26,7 @@ Parser     View        (Live Prev)  Links       System
 - **Fase 2 depende do round-trip da Fase 1** — escrever no `.md` (corpo + frontmatter lazy) e reler.
 - **Marcar como feita (Fase 2)** é o teste real do fluxo bidirecional: reescrever `[ ]`→`[x]` preservando o resto da linha e o frontmatter.
 - **Fase 3 depende do editor rico da Fase 2** — o `@` autocomplete e o render de link clicável vivem no mesmo editor (CodeMirror 6).
-- **Carry-over (Fase 4)** depende de uma decisão de design ainda em aberto (ver Fase 4): reescrever `📅` na origem vs. criar nova linha no destino.
+- **Carry-over (Fase 4)** — decisão resolvida: **reescrever `📅` na linha de origem** (`setTaskScheduledDate`), alinhado ao Obsidian Tasks.
 
 ## Como ler uma fase
 
