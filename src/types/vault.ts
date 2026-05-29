@@ -65,6 +65,14 @@ export interface VaultMeta {
 	lastOpened: string; // ISO datetime
 }
 
+// ─── Settings (preferências persistidas — git-friendly, vai junto com o vault) ──
+
+export type ThemeType = "default" | "dracula-soft";
+
+export interface VaultSettings {
+	theme: ThemeType;
+}
+
 // Grafo de links derivado: nome do nó alvo ([[nome]]) → caminhos dos nós que
 // apontam pra ele (backlinks). Reconstruído a cada scan, nunca no frontmatter.
 export type LinkGraph = Record<string, string[]>;

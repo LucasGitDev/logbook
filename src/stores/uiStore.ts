@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { loadPreference, savePreference } from "@/lib/idb";
+import { writeSettings } from "@/lib/vault";
+import type { ThemeType } from "@/types/vault";
+import { useVaultStore } from "./vaultStore";
 
-export type ThemeType = "default" | "dracula-soft";
+export type { ThemeType };
 
 export type TabKind = "daily" | "note" | "inbox" | "week";
 
@@ -28,6 +31,7 @@ interface UIStore {
 	openTab: (tab: Tab) => void;
 	closeTab: (id: string) => void;
 	clearTabs: () => void;
+	applyTheme: (theme: ThemeType) => void;
 	setTheme: (theme: ThemeType) => void;
 	toggleSidebar: () => void;
 	togglePanel: () => void;
@@ -78,10 +82,19 @@ export const useUIStore = create<UIStore>((set, get) => ({
 		savePreference("activeTabId", null);
 	},
 
+	// Aplica o tema (DOM + store) sem persistir — usado ao carregar o vault.
+	applyTheme: (theme) => {
+		set({ theme });
+		document.documentElement.setAttribute("data-theme", theme);
+	},
+
+	// Alterna e persiste em meta/settings.json (git-friendly). Estado de sessão
+	// (abas, sidebar) continua em IDB; só preferências reais vão pro vault.
 	setTheme: (theme) => {
 		set({ theme });
 		document.documentElement.setAttribute("data-theme", theme);
-		savePreference("theme", theme);
+		const root = useVaultStore.getState().rootHandle;
+		if (root) writeSettings(root, { theme });
 	},
 
 	toggleSidebar: () => {
@@ -113,7 +126,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
 	initPreferences: async () => {
 		if (get().isInitialized) return;
-		const theme = await loadPreference<ThemeType>("theme", "default");
+		// Tema NÃO vem daqui: vive em meta/settings.json e é aplicado quando o
+		// vault abre (applyTheme em _app.tsx). IDB guarda só estado de sessão.
 		const sidebarOpen = await loadPreference<boolean>("sidebarOpen", true);
 		const panelOpen = await loadPreference<boolean>("panelOpen", true);
 		const focusMode = await loadPreference<boolean>("focusMode", false);
@@ -123,11 +137,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
 			null,
 		);
 
-		// Aplica o tema no HTML
-		document.documentElement.setAttribute("data-theme", theme);
-
 		set({
-			theme,
 			sidebarOpen: focusMode ? false : sidebarOpen,
 			panelOpen: focusMode ? false : panelOpen,
 			focusMode,

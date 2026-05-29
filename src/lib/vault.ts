@@ -2,10 +2,13 @@
 // O resto do app fala com o vault só por estas funções (caminhos relativos +
 // string de conteúdo). Chrome/Edge only.
 
-import type { VaultMeta } from "@/types/vault";
+import type { VaultMeta, VaultSettings } from "@/types/vault";
 import { saveVaultHandle } from "./idb";
 
 const SCHEMA_VERSION = 1;
+
+const SETTINGS_PATH = "meta/settings.json";
+const DEFAULT_SETTINGS: VaultSettings = { theme: "default" };
 
 // ─── Suporte / picker / permissão ─────────────────────────────────────────────
 
@@ -145,6 +148,24 @@ export async function writeJson(
 	await writeFile(root, relPath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
+// ─── Settings (preferências persistidas no vault) ─────────────────────────────
+
+/** Lê meta/settings.json; faz merge com os defaults (campos faltantes/arquivo ausente). */
+export async function readSettings(
+	root: FileSystemDirectoryHandle,
+): Promise<VaultSettings> {
+	const stored = await readJson<Partial<VaultSettings>>(root, SETTINGS_PATH);
+	return { ...DEFAULT_SETTINGS, ...stored };
+}
+
+/** Escreve meta/settings.json. */
+export async function writeSettings(
+	root: FileSystemDirectoryHandle,
+	settings: VaultSettings,
+): Promise<void> {
+	await writeJson(root, SETTINGS_PATH, settings);
+}
+
 // ─── Listagem de nós ────────────────────────────────────────────────────────────
 
 async function* walkMarkdown(
@@ -204,6 +225,9 @@ export async function bootstrapVault(
 			lastOpened: new Date().toISOString(),
 		};
 		await writeJson(root, ".vault.json", meta);
+	}
+	if (!(await fileExists(root, SETTINGS_PATH))) {
+		await writeJson(root, SETTINGS_PATH, DEFAULT_SETTINGS);
 	}
 }
 
