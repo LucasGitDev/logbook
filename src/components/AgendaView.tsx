@@ -1,4 +1,4 @@
-import { Clock, Timer } from "lucide-react";
+import { Clock, Hash, Timer } from "lucide-react";
 import type { AgendaItem } from "@/types/vault";
 
 interface AgendaViewProps {
@@ -47,6 +47,13 @@ export function AgendaView({ items }: AgendaViewProps) {
 										<span className="inline-flex items-center gap-1 text-[10px] font-medium text-cyan bg-cyan/8 px-1.5 py-0.5 rounded border border-cyan/15 font-mono">
 											<Timer className="h-3 w-3" />
 											{formatDuration(item.durationMin)}
+										</span>
+									)}
+
+									{item.project && (
+										<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink">
+											<Hash className="h-2.5 w-2.5" />
+											{item.project}
 										</span>
 									)}
 								</div>
