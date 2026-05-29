@@ -15,6 +15,14 @@ describe("customCompletionSource", () => {
 		expect(res?.options.length).toBe(5);
 	});
 
+	it("resultado usa filter:false (senão o CM descarta tudo filtrando por /, @)", () => {
+		// from inclui o trigger; sem filter:false o CM filtra os labels pelo texto
+		// a partir do trigger e zera as opções → nenhum popup.
+		expect(customCompletionSource(ctxAfter("/"))?.filter).toBe(false);
+		expect(customCompletionSource(ctxAfter("@x"))?.filter).toBe(false);
+		expect(customCompletionSource(ctxAfter("#"))?.filter).toBe(false);
+	});
+
 	it("`/ag` filtra (Agendar)", () => {
 		const res = customCompletionSource(ctxAfter("/ag"));
 		expect(res?.options.some((o) => o.label.includes("Agendar"))).toBe(true);

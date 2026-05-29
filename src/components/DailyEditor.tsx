@@ -403,6 +403,10 @@ export const customCompletionSource = (
 
 		return {
 			from: word.from,
+			// filter:false — já filtramos por `query`; sem isso o CM re-filtraria
+			// pelo texto a partir do `/` (ex: "/ag") contra os labels e descartaria
+			// tudo (nenhum label contém "/").
+			filter: false,
 			options: options
 				.filter((o) => o.label.toLowerCase().includes(query))
 				.map((o) => ({
@@ -450,12 +454,13 @@ export const customCompletionSource = (
 			});
 		}
 
-		return { from: word.from, options };
+		return { from: word.from, filter: false, options };
 	}
 
 	if (trigger === "#") {
 		return {
 			from: word.from,
+			filter: false,
 			options: store.projects
 				.filter((p) => p.tag.toLowerCase().includes(query))
 				.map((p) => ({
