@@ -461,6 +461,68 @@ h6 {
 	border-color: var(--line-strong);
 }
 
+/* ─── Tabbar (abas estilo VSCode) ─── */
+.tabbar {
+	display: flex;
+	align-items: stretch;
+	height: 34px;
+	background: var(--footer);
+	border-bottom: 1px solid var(--line);
+	overflow-x: auto;
+	overflow-y: hidden;
+	user-select: none;
+}
+.tabbar::-webkit-scrollbar {
+	height: 0;
+}
+.tab {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 0 10px 0 12px;
+	max-width: 200px;
+	border-right: 1px solid var(--line);
+	background: transparent;
+	color: var(--fg-4);
+	font-size: 12px;
+	cursor: pointer;
+	border-top: 2px solid transparent;
+	transition: background 120ms ease, color 120ms ease;
+}
+.tab:hover {
+	background: var(--surface);
+	color: var(--fg-2);
+}
+.tab.active {
+	background: var(--bg-elev);
+	color: var(--fg-strong);
+	border-top-color: var(--accent);
+}
+.tab-label {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.tab-close {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px;
+	border-radius: 4px;
+	color: var(--fg-5);
+	opacity: 0;
+	transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+	cursor: pointer;
+}
+.tab:hover .tab-close,
+.tab.active .tab-close {
+	opacity: 1;
+}
+.tab-close:hover {
+	background: var(--surface-strong);
+	color: var(--fg-2);
+}
+
 /* ─── Statusbar ─── */
 .statusbar {
 	height: 26px;
