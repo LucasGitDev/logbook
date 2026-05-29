@@ -15,7 +15,7 @@ Parser     View        (Live Prev)  Links       System
 | [**2.5**](./fase-2.5-ui-ux.md) | Redefinição UI/UX | Identidade dev + editor Live Preview | 2 temas, render markdown ao vivo (Notion-like), statusbar/topbar, `⌘K`, modo foco | ✅ Concluída |
 | [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link | ✅ Concluída |
 | [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; carry-over; inbox; filtro por projeto; visão semanal; abas VSCode | ✅ Concluída |
-| [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | App pronto pra uso diário: tema, responsivo, git, atalhos | ⬜ A fazer |
+| [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | Tema persistido em settings.json, layout responsivo (drawer + aviso FS Access), git informativo (branch no statusbar), atalhos | ✅ Concluída |
 
 ## Dependências entre objetivos
 
