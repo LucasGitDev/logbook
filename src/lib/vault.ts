@@ -97,6 +97,15 @@ export async function writeFile(
 	await writable.close();
 }
 
+/** Exclui um arquivo do diretório. */
+export async function deleteFile(
+	root: FileSystemDirectoryHandle,
+	relPath: string,
+): Promise<void> {
+	const { dir, fileName } = await resolveParent(root, relPath, false);
+	await dir.removeEntry(fileName);
+}
+
 /** Existe esse arquivo? */
 export async function fileExists(
 	root: FileSystemDirectoryHandle,

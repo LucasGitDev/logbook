@@ -8,8 +8,9 @@
 import { type IDBPDatabase, openDB } from "idb";
 
 const DB_NAME = "diario-de-bordo";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = "handles";
+const PREFS_STORE = "preferences";
 const VAULT_KEY = "vault-root";
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
@@ -20,6 +21,9 @@ function getDb(): Promise<IDBPDatabase> {
 			upgrade(db) {
 				if (!db.objectStoreNames.contains(STORE)) {
 					db.createObjectStore(STORE);
+				}
+				if (!db.objectStoreNames.contains(PREFS_STORE)) {
+					db.createObjectStore(PREFS_STORE);
 				}
 			},
 		});
@@ -46,4 +50,28 @@ export async function loadVaultHandle(): Promise<FileSystemDirectoryHandle | nul
 export async function clearVaultHandle(): Promise<void> {
 	const db = await getDb();
 	await db.delete(STORE, VAULT_KEY);
+}
+
+/** Salva uma preferência de UI no IndexedDB. */
+export async function savePreference(
+	key: string,
+	value: unknown,
+): Promise<void> {
+	const db = await getDb();
+	await db.put(PREFS_STORE, value, key);
+}
+
+/** Recupera uma preferência de UI do IndexedDB. */
+export async function loadPreference<T>(
+	key: string,
+	defaultValue: T,
+): Promise<T> {
+	try {
+		const db = await getDb();
+		const val = await db.get(PREFS_STORE, key);
+		return val !== undefined ? (val as T) : defaultValue;
+	} catch (err) {
+		console.warn(`Erro ao carregar preferência ${key}:`, err);
+		return defaultValue;
+	}
 }

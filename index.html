@@ -1,13 +1,37 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR" data-theme="default">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>diario-scaffold</title>
+    <title>Diário de Bordo</title>
+    <script>
+      (() => {
+        try {
+          const req = indexedDB.open("diario-de-bordo");
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (db.objectStoreNames.contains("preferences")) {
+              const tx = db.transaction("preferences", "readonly");
+              const store = tx.objectStore("preferences");
+              const getReq = store.get("theme");
+              getReq.onsuccess = () => {
+                const theme = getReq.result;
+                if (theme) {
+                  document.documentElement.setAttribute("data-theme", theme);
+                }
+              };
+            }
+          };
+        } catch(err) {
+          console.error(err);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

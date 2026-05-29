@@ -6,6 +6,10 @@ import { createRoot } from "react-dom/client";
 import "./styles/globals.css";
 import { queryClient } from "./lib/queryClient";
 import { routeTree } from "./routeTree.gen";
+import { useUIStore } from "./stores/uiStore";
+
+// Inicializa preferências de UI (tema, layout) do IndexedDB
+useUIStore.getState().initPreferences();
 
 const router = createRouter({ routeTree });
 

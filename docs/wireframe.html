@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="default">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diário de Bordo — wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ─── Tokens (copiados do globals.css — fonte de verdade dos 2 temas) ─── */
+:root {
+  --bg: #0a0a0c;
+  --bg-elev: #0d0d11;
+  --sidebar: #0b0b0e;
+  --panel: #0b0b0e;
+  --inset: #121216;
+  --footer: #08080a;
+  --surface: rgba(255,255,255,0.02);
+  --surface-faint: rgba(255,255,255,0.01);
+  --surface-hover: rgba(255,255,255,0.04);
+  --surface-strong: rgba(255,255,255,0.06);
+  --line: rgba(255,255,255,0.06);
+  --line-soft: rgba(255,255,255,0.04);
+  --line-faint: rgba(255,255,255,0.03);
+  --line-strong: rgba(255,255,255,0.08);
+  --fg-strong: #ffffff;
+  --fg: #e5e7eb;
+  --fg-2: #d1d5db;
+  --fg-3: #9ca3af;
+  --fg-4: #6b7280;
+  --fg-5: #4b5563;
+  --accent: #6366f1;
+  --accent-strong: #4f46e5;
+  --accent-soft: #818cf8;
+  --accent-faint: #a5b4fc;
+  --success: #34d399;
+  --warn: #fbbf24;
+  --danger: #fb7185;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+  --link: #60a5fa;
+}
+[data-theme="dracula-soft"] {
+  --bg: #22212c;
+  --bg-elev: #1e1d27;
+  --sidebar: #1d1c26;
+  --panel: #201f2a;
+  --inset: #2a2937;
+  --footer: #19181f;
+  --surface: rgba(248,248,242,0.035);
+  --surface-faint: rgba(248,248,242,0.02);
+  --surface-hover: rgba(248,248,242,0.06);
+  --surface-strong: rgba(248,248,242,0.09);
+  --line: rgba(248,248,242,0.09);
+  --line-soft: rgba(248,248,242,0.06);
+  --line-faint: rgba(248,248,242,0.04);
+  --line-strong: rgba(248,248,242,0.13);
+  --fg-strong: #f8f8f2;
+  --fg: #f8f8f2;
+  --fg-2: #e6e3f0;
+  --fg-3: #b9b4cf;
+  --fg-4: #7970a9;
+  --fg-5: #5a5478;
+  --accent: #9580ff;
+  --accent-strong: #7d68f0;
+  --accent-soft: #bd93f9;
+  --accent-faint: #d6c7ff;
+  --success: #8aff80;
+  --warn: #ffca80;
+  --danger: #ff9580;
+  --cyan: #80ffea;
+  --pink: #ff80bf;
+  --link: #80ffea;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  overflow: hidden;
+  transition: background 120ms ease, color 120ms ease;
+}
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.c-date     { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); border: 1px solid color-mix(in srgb, var(--success) 26%, transparent); }
+.c-time     { color: var(--warn);    background: color-mix(in srgb, var(--warn) 12%, transparent);    border: 1px solid color-mix(in srgb, var(--warn) 26%, transparent); }
+.c-duration { color: var(--cyan);    background: color-mix(in srgb, var(--cyan) 12%, transparent);    border: 1px solid color-mix(in srgb, var(--cyan) 26%, transparent); }
+.c-project  { color: var(--pink);    background: color-mix(in srgb, var(--pink) 12%, transparent);    border: 1px solid color-mix(in srgb, var(--pink) 26%, transparent); }
+.c-link     { color: var(--link);    background: color-mix(in srgb, var(--link) 12%, transparent);    border: 1px solid color-mix(in srgb, var(--link) 26%, transparent); cursor: pointer; }
+
+/* ─── Topbar ─── */
+.topbar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--footer);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--fg-4);
+}
+.topbar .vault { color: var(--fg-3); display: flex; align-items: center; gap: 7px; }
+.topbar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+.topbar .spacer { flex: 1; }
+.cmdk {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 10px; border-radius: 7px;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--fg-4); font-size: 11.5px;
+}
+.cmdk kbd {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface-strong); border: 1px solid var(--line);
+  border-radius: 4px; padding: 0 5px; color: var(--fg-3);
+}
+.tb-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--line);
+  color: var(--fg-3); font-family: var(--mono); font-size: 11.5px;
+  cursor: pointer; transition: background 120ms ease, border-color 120ms ease;
+}
+.tb-btn:hover { background: var(--surface-hover); border-color: var(--line-strong); }
+
+/* ─── Shell grid ─── */
+.shell { display: flex; flex-direction: column; height: 100vh; }
+.body-row { flex: 1; display: flex; min-height: 0; }
+
+/* ─── Sidebar ─── */
+.sidebar {
+  width: 232px; flex-shrink: 0;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 16px;
+  border-bottom: 1px solid var(--line-faint);
+}
+.brand .logo {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.brand h1 { font-size: 14px; font-weight: 700; color: var(--fg-strong); font-family: var(--sans); }
+.brand p { font-family: var(--mono); font-size: 10px; color: var(--fg-5); margin-top: 1px; }
+
+.nav-section { padding: 14px 10px 4px; }
+.nav-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-5);
+  padding: 0 8px; margin-bottom: 8px; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px; border-radius: 7px; cursor: pointer;
+  color: var(--fg-3); font-size: 13.5px;
+  border-left: 2px solid transparent;
+  transition: background 120ms ease, color 120ms ease;
+}
+.nav-item:hover { background: var(--surface); color: var(--fg-2); }
+.nav-item.active {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--fg-strong); border-left-color: var(--accent);
+}
+.nav-item .ic { color: var(--fg-5); display: flex; }
+.nav-item.active .ic { color: var(--accent-soft); }
+.nav-item .num { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--fg-5); }
+
+.sb-spacer { flex: 1; }
+
+/* heatmap */
+.heatmap { padding: 14px 16px; border-top: 1px solid var(--line-faint); }
+.heatmap .grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; margin-top: 8px; }
+.heatmap .cell { aspect-ratio: 1; border-radius: 2px; background: var(--surface-strong); }
+.heatmap .l1 { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.heatmap .l2 { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.heatmap .l3 { background: var(--accent); }
+
+.sb-footer { padding: 12px; border-top: 1px solid var(--line-faint); }
+.sb-vault {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--line-soft);
+}
+.sb-vault .vt { font-size: 11px; font-weight: 600; color: var(--fg-2); }
+.sb-vault .vp { font-family: var(--mono); font-size: 10px; color: var(--fg-5); }
+
+/* ─── Editor center ─── */
+.editor { flex: 1; min-width: 0; background: var(--bg-elev); display: flex; flex-direction: column; overflow: hidden; }
+.editor-scroll { flex: 1; overflow-y: auto; padding: 36px 56px; }
+.hero {
+  font-family: var(--mono);
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 4px;
+}
+.hero .wd { font-size: 15px; color: var(--accent-soft); font-weight: 500; text-transform: lowercase; }
+.hero .dd { font-size: 60px; font-weight: 700; line-height: 1; color: var(--fg-strong); letter-spacing: -0.02em; }
+.hero .my { font-size: 14px; color: var(--fg-4); }
+.hero-rule { height: 1px; background: var(--line); margin: 20px 0 24px; }
+
+.prose { font-family: var(--sans); font-size: 15px; line-height: 1.7; color: var(--fg-2); max-width: 680px; }
+.prose p { margin-bottom: 14px; }
+.todo { display: flex; align-items: flex-start; gap: 10px; margin: 7px 0; }
+.todo .box { margin-top: 3px; flex-shrink: 0; color: var(--fg-4); }
+.todo .box.done { color: var(--success); }
+.todo .txt.done { color: var(--fg-5); text-decoration: line-through; }
+.inline-chips { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: baseline; }
+
+/* ─── Right panel ─── */
+.panel {
+  width: 326px; flex-shrink: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.panel-section { padding: 18px 18px; }
+.panel-section + .panel-section { border-top: 1px solid var(--line-faint); }
+.ps-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.ps-head .t {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-4); font-weight: 600;
+  display: flex; align-items: center; gap: 7px;
+}
+.ps-head .count { font-family: var(--mono); font-size: 11px; color: var(--fg-5); }
+
+/* agenda timeline */
+.timeline { border-left: 1px solid var(--line); margin-left: 5px; padding-left: 16px; display: flex; flex-direction: column; gap: 16px; }
+.tl-item { position: relative; }
+.tl-item .dot { position: absolute; left: -21px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); border: 2px solid var(--bg); }
+.tl-row { display: flex; gap: 6px; margin-bottom: 5px; }
+.tl-text { font-size: 13.5px; color: var(--fg); font-weight: 500; }
+
+/* task rows */
+.task { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: 8px; transition: background 120ms ease; }
+.task:hover { background: var(--surface); }
+.task .box { margin-top: 1px; flex-shrink: 0; color: var(--fg-4); }
+.task .box.done { color: var(--success); }
+.task .t { font-size: 13.5px; color: var(--fg); }
+.task.done .t { color: var(--fg-5); text-decoration: line-through; }
+.task .meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+/* ─── Statusbar ─── */
+.statusbar {
+  height: 26px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 0;
+  background: var(--footer); border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; color: var(--fg-4);
+  padding: 0 0;
+}
+.sb-cell { padding: 0 12px; height: 100%; display: flex; align-items: center; gap: 6px; border-right: 1px solid var(--line-faint); }
+.sb-cell.accent { color: var(--accent-soft); }
+.sb-cell.ok { color: var(--success); }
+.statusbar .spacer { flex: 1; }
+
+/* ─── Home gate ─── */
+.gate { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; background: var(--bg); }
+.gate-card {
+  width: 380px; padding: 34px 32px; text-align: center;
+  background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px;
+}
+.gate-logo { width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.gate-card h1 { font-size: 21px; font-weight: 700; color: var(--fg-strong); margin-bottom: 8px; font-family: var(--sans); }
+.gate-card p { font-size: 13px; color: var(--fg-4); line-height: 1.6; margin-bottom: 26px; }
+.btn-primary {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 11px; border-radius: 9px; border: none; cursor: pointer;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; font-family: var(--sans);
+  transition: background 120ms ease;
+}
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-recent-path { font-family: var(--mono); font-size: 11px; color: var(--fg-5); margin: 12px 0; }
+.btn-ghost {
+  width: 100%; padding: 9px; border-radius: 9px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); color: var(--fg-3);
+  font-weight: 600; font-size: 13px; font-family: var(--sans);
+  transition: background 120ms ease;
+}
+.btn-ghost:hover { background: var(--surface-hover); }
+.gate-foot { margin-top: 22px; font-family: var(--mono); font-size: 11px; color: var(--fg-5); }
+
+/* screen switch */
+.screen { display: none; }
+.screen.on { display: block; }
+
+/* layout toggles (vibe VSCode) */
+body.hide-sidebar .sidebar { display: none; }
+body.hide-panel .panel { display: none; }
+.cmdk { cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
+.cmdk:hover { border-color: var(--line-strong); background: var(--surface-hover); }
+
+/* command palette */
+.palette-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.5);
+  display: none; align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+}
+.palette-overlay.on { display: flex; }
+.palette {
+  width: 560px; max-width: 90vw;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+.palette input {
+  width: 100%; padding: 14px 16px;
+  background: transparent; border: none; outline: none;
+  color: var(--fg); font-family: var(--mono); font-size: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.palette input::placeholder { color: var(--fg-5); }
+.palette ul { list-style: none; max-height: 340px; overflow-y: auto; padding: 6px; }
+.palette li {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: 7px; cursor: pointer;
+  color: var(--fg-2); font-size: 13.5px;
+}
+.palette li .pc { color: var(--fg-5); display: flex; }
+.palette li .pk { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--fg-5); }
+.palette li.sel { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--fg-strong); }
+.palette li.sel .pc { color: var(--accent-soft); }
+.palette .empty { padding: 16px; text-align: center; color: var(--fg-5); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="vault"><span class="dot"></span>vault-diariobordo</span>
+  <span class="spacer"></span>
+  <span class="cmdk">buscar, ir para… <kbd>⌘K</kbd></span>
+  <span class="spacer"></span>
+  <span>◷ 14:32</span>
+  <button class="tb-btn" onclick="toggleTheme()" id="themeBtn">◐ default</button>
+  <button class="tb-btn" onclick="toggleScreen()" id="screenBtn">⊞ ver: Home</button>
+</div>
+
+<!-- ════════════ DAILY VIEW ════════════ -->
+<div class="screen on" id="daily">
+<div class="shell" style="height: calc(100vh - 38px);">
+  <div class="body-row">
+
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        </div>
+        <div>
+          <h1>Diário de Bordo</h1>
+          <p>obsidian-lite logs</p>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Navegação diária</div>
+        <div class="nav-item active">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          Hoje
+        </div>
+        <div class="nav-item">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          Ontem
+        </div>
+        <div class="nav-item">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          Seg, 26 mai
+        </div>
+        <div class="nav-item">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          Dom, 25 mai
+        </div>
+      </div>
+
+      <div class="sb-spacer"></div>
+
+      <div class="heatmap">
+        <div class="nav-label" style="padding:0;">Atividade</div>
+        <div class="grid">
+          <span class="cell l1"></span><span class="cell"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l1"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell"></span><span class="cell l1"></span><span class="cell l3"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l1"></span>
+          <span class="cell l2"></span><span class="cell l3"></span><span class="cell l1"></span><span class="cell"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l3"></span><span class="cell l1"></span><span class="cell l2"></span><span class="cell"></span><span class="cell l3"></span><span class="cell l2"></span><span class="cell l3"></span>
+          <span class="cell l3"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l1"></span><span class="cell l3"></span><span class="cell"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l1"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l3"></span><span class="cell l2"></span>
+        </div>
+      </div>
+
+      <div class="sb-footer">
+        <div class="sb-vault">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-soft)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <div>
+            <div class="vt">Vault ativo</div>
+            <div class="vp">vault-diariobordo</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- editor -->
+    <main class="editor">
+      <div class="editor-scroll">
+        <div class="hero">
+          <span class="wd">sexta</span>
+          <span class="dd">28</span>
+          <span class="my">maio · 2026</span>
+        </div>
+        <div class="hero-rule"></div>
+
+        <div class="prose">
+          <p>Fechei o parser de markdown hoje. Round-trip de <code>[ ]</code>↔<code>[x]</code> preservando frontmatter byte a byte — testes verdes. Próximo: indexer reconstruindo <code>meta/*.json</code>.</p>
+
+          <div class="todo">
+            <span class="box"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg></span>
+            <span class="txt">revisar PR do indexer
+              <span class="inline-chips"><span class="chip c-date">📅 30 mai</span><span class="chip c-project"># infra</span></span>
+            </span>
+          </div>
+
+          <div class="todo">
+            <span class="box done"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></svg></span>
+            <span class="txt done">escrever testes de round-trip</span>
+          </div>
+
+          <p style="margin-top:14px;">Discussão de design ficou em <span class="chip c-link">arquitetura</span> — decidir layout antes de seguir.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- right panel -->
+    <aside class="panel">
+      <div class="panel-section">
+        <div class="ps-head">
+          <span class="t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Agenda</span>
+          <span class="count">1</span>
+        </div>
+        <div class="timeline">
+          <div class="tl-item">
+            <span class="dot"></span>
+            <div class="tl-row">
+              <span class="chip c-time">⏰ 14:00</span>
+              <span class="chip c-duration">⏱ 30min</span>
+            </div>
+            <div class="tl-text">1:1 com gestor</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="ps-head">
+          <span class="t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Tarefas</span>
+          <span class="count">2 / 5</span>
+        </div>
+
+        <div class="task">
+          <span class="box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg></span>
+          <div>
+            <div class="t">revisar PR do indexer</div>
+            <div class="meta"><span class="chip c-project"># infra</span></div>
+          </div>
+        </div>
+        <div class="task">
+          <span class="box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg></span>
+          <div>
+            <div class="t">deploy staging</div>
+            <div class="meta"><span class="chip c-date">📅 28 mai</span></div>
+          </div>
+        </div>
+        <div class="task done">
+          <span class="box done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></svg></span>
+          <div><div class="t">escrever parser core</div></div>
+        </div>
+        <div class="task done">
+          <span class="box done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></svg></span>
+          <div><div class="t">testes round-trip</div></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- statusbar -->
+  <div class="statusbar">
+    <span class="sb-cell accent">⎇ daily/2026-05-28</span>
+    <span class="sb-cell">312 palavras</span>
+    <span class="sb-cell ok">● salvo</span>
+    <span class="spacer"></span>
+    <span class="sb-cell">markdown</span>
+    <span class="sb-cell">UTF-8</span>
+    <span class="sb-cell">Ln 14, Col 22</span>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ HOME GATE ════════════ -->
+<div class="screen" id="home">
+  <div class="gate">
+    <div class="gate-card">
+      <div class="gate-logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      </div>
+      <h1>Diário de Bordo</h1>
+      <p>Organize seu dia em arquivos markdown locais. 100% privado, sem servidores.</p>
+      <button class="btn-primary">
+        Reabrir vault recente
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+      <div class="btn-recent-path">~/dev/vault-diariobordo</div>
+      <button class="btn-ghost">Selecionar outra pasta</button>
+      <div class="gate-foot">chrome · edge · arc — local-first</div>
+    </div>
+  </div>
+</div>
+
+<!-- command palette (⌘K) -->
+<div class="palette-overlay" id="paletteOverlay">
+  <div class="palette">
+    <input id="paletteInput" type="text" placeholder="Digite um comando ou busque…" autocomplete="off" />
+    <ul id="paletteList"></ul>
+  </div>
+</div>
+
+<script>
+const html = document.documentElement;
+const body = document.body;
+
+function toggleTheme() {
+  const next = html.dataset.theme === "default" ? "dracula-soft" : "default";
+  html.dataset.theme = next;
+  document.getElementById("themeBtn").textContent = "◐ " + next;
+}
+function setScreen(name) {
+  document.getElementById("daily").classList.toggle("on", name === "daily");
+  document.getElementById("home").classList.toggle("on", name === "home");
+  document.getElementById("screenBtn").textContent = "⊞ ver: " + (name === "daily" ? "Home" : "Daily");
+}
+function toggleScreen() {
+  setScreen(document.getElementById("daily").classList.contains("on") ? "home" : "daily");
+}
+function focusMode() {
+  const on = body.classList.contains("hide-sidebar") && body.classList.contains("hide-panel");
+  body.classList.toggle("hide-sidebar", !on);
+  body.classList.toggle("hide-panel", !on);
+}
+
+// ─── command palette ───
+const commands = [
+  { ic: "◐", label: "Alternar tema (default ⇆ dracula-soft)", key: "", run: toggleTheme },
+  { ic: "▢", label: "Alternar barra lateral", key: "⌘B", run: () => body.classList.toggle("hide-sidebar") },
+  { ic: "▥", label: "Alternar painel direito", key: "⌘J", run: () => body.classList.toggle("hide-panel") },
+  { ic: "⛶", label: "Modo foco (esconder painéis)", key: "⌘.", run: focusMode },
+  { ic: "▤", label: "Ver: Daily", key: "", run: () => setScreen("daily") },
+  { ic: "⌂", label: "Ver: Home", key: "", run: () => setScreen("home") },
+  { ic: "→", label: "Ir para Hoje", key: "", run: () => setScreen("daily") },
+  { ic: "+", label: "Nova nota", key: "⌘N", run: () => {} },
+  { ic: "⌕", label: "Buscar nota…", key: "", run: () => {} },
+];
+let sel = 0, filtered = commands;
+const overlay = document.getElementById("paletteOverlay");
+const input = document.getElementById("paletteInput");
+const list = document.getElementById("paletteList");
+
+function renderPalette() {
+  list.innerHTML = "";
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty">Nenhum comando</div>'; return; }
+  filtered.forEach((c, i) => {
+    const li = document.createElement("li");
+    if (i === sel) li.className = "sel";
+    li.innerHTML = `<span class="pc">${c.ic}</span><span>${c.label}</span>` + (c.key ? `<span class="pk">${c.key}</span>` : "");
+    li.onclick = () => { c.run(); closePalette(); };
+    list.appendChild(li);
+  });
+}
+function openPalette() {
+  overlay.classList.add("on"); input.value = ""; sel = 0; filtered = commands;
+  renderPalette(); input.focus();
+}
+function closePalette() { overlay.classList.remove("on"); }
+function filterPalette() {
+  const q = input.value.toLowerCase();
+  filtered = commands.filter(c => c.label.toLowerCase().includes(q));
+  sel = 0; renderPalette();
+}
+input.addEventListener("input", filterPalette);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closePalette(); });
+document.querySelector(".cmdk").addEventListener("click", openPalette);
+
+document.addEventListener("keydown", (e) => {
+  const meta = e.metaKey || e.ctrlKey;
+  if (meta && e.key.toLowerCase() === "k") { e.preventDefault(); overlay.classList.contains("on") ? closePalette() : openPalette(); return; }
+  if (meta && e.key.toLowerCase() === "b") { e.preventDefault(); body.classList.toggle("hide-sidebar"); return; }
+  if (meta && e.key.toLowerCase() === "j") { e.preventDefault(); body.classList.toggle("hide-panel"); return; }
+  if (meta && e.key === ".") { e.preventDefault(); focusMode(); return; }
+  if (!overlay.classList.contains("on")) return;
+  if (e.key === "Escape") { closePalette(); }
+  else if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, filtered.length - 1); renderPalette(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); renderPalette(); }
+  else if (e.key === "Enter") { e.preventDefault(); if (filtered[sel]) { filtered[sel].run(); closePalette(); } }
+});
+</script>
+</body>
+</html>

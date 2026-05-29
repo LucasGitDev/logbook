@@ -11,7 +11,7 @@ import {
 	writeFile,
 } from "@/lib/vault";
 import { useVaultStore } from "@/stores/vaultStore";
-import type { AgendaItem, Task, TaskStatus } from "@/types/vault";
+import type { AgendaItem, Note, Task, TaskStatus } from "@/types/vault";
 
 /** Hook para recarregar o índice do vault quando o rootHandle mudar */
 export function useVaultIndex() {
@@ -51,6 +51,42 @@ export function useDailyNote(date: string) {
 		},
 		enabled: !!rootHandle && !!date,
 	});
+}
+
+/** Hook para carregar uma nota livre pelo seu ID (bruta) */
+export function useNote(id: string) {
+	const rootHandle = useVaultStore((state) => state.rootHandle);
+	const notes = useVaultStore((state) => state.notes);
+	const isLoaded = useVaultStore((state) => state.isLoaded);
+
+	const note = notes.find((n) => n.id === id);
+	const path = note?.path;
+
+	return useQuery({
+		queryKey: ["note", id, path, rootHandle],
+		queryFn: async () => {
+			if (!rootHandle) throw new Error("Vault não inicializado");
+			if (!path) throw new Error(`Nota com ID ${id} não encontrada`);
+			const content = await readFile(rootHandle, path);
+			return content ?? "";
+		},
+		enabled: !!rootHandle && isLoaded && !!path,
+	});
+}
+
+/** Resolve um nome de wikilink (título ou alias) para um nó do vault de forma case-insensitive */
+export function resolveLinkTarget(
+	notes: Note[],
+	targetName: string,
+): Note | null {
+	const lower = targetName.trim().toLowerCase();
+	return (
+		notes.find((n) => {
+			if (n.title.toLowerCase() === lower) return true;
+			if (n.aliases.some((alias) => alias.toLowerCase() === lower)) return true;
+			return false;
+		}) ?? null
+	);
 }
 
 /** Hook para carregar as tasks de um dia específico (lendo reativamente do store Zustand) */
@@ -118,6 +154,11 @@ export function useSaveNote() {
 				queryClient.invalidateQueries({ queryKey: ["dailyNote", date] });
 				queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
 				queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
+			} else {
+				const note = index.notes.find((n) => n.path === path);
+				if (note) {
+					queryClient.invalidateQueries({ queryKey: ["note", note.id] });
+				}
 			}
 		},
 	});

@@ -4,7 +4,8 @@ import {
 	type CompletionResult,
 } from "@codemirror/autocomplete";
 import { markdown } from "@codemirror/lang-markdown";
-import { EditorState, type Range } from "@codemirror/state";
+import { syntaxTree } from "@codemirror/language";
+import { EditorState, type Range, StateField } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -13,8 +14,9 @@ import {
 	WidgetType,
 } from "@codemirror/view";
 import { basicSetup, EditorView } from "codemirror";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { getLocalDateString } from "@/lib/dates";
+import { dailyDateFromPath } from "@/lib/indexer";
 import { useSaveNote } from "@/lib/useVault";
 import { useVaultStore } from "@/stores/vaultStore";
 
@@ -168,6 +170,191 @@ const chipPlugin = ViewPlugin.fromClass(
 	},
 );
 
+class HRWidget extends WidgetType {
+	override toDOM() {
+		const hr = document.createElement("hr");
+		hr.className = "cm-hr";
+		return hr;
+	}
+}
+
+const livePreviewPlugin = ViewPlugin.fromClass(
+	class {
+		decorations: DecorationSet;
+		constructor(view: EditorView) {
+			this.decorations = this.buildDecorations(view);
+		}
+		update(update: ViewUpdate) {
+			if (update.docChanged || update.viewportChanged || update.selectionSet) {
+				this.decorations = this.buildDecorations(update.view);
+			}
+		}
+		buildDecorations(view: EditorView) {
+			const builder: Range<Decoration>[] = [];
+			const selection = view.state.selection;
+			const activeLines = new Set<number>();
+			for (const range of selection.ranges) {
+				try {
+					const line = view.state.doc.lineAt(range.head).number;
+					activeLines.add(line);
+				} catch {
+					// fallback
+				}
+			}
+
+			const tree = syntaxTree(view.state);
+
+			for (const { from, to } of view.visibleRanges) {
+				tree.iterate({
+					from,
+					to,
+					enter(node) {
+						let lineStart = 1;
+						let lineEnd = 1;
+						try {
+							lineStart = view.state.doc.lineAt(node.from).number;
+							lineEnd = view.state.doc.lineAt(node.to).number;
+						} catch {
+							return;
+						}
+						const isCursorOnLine = Array.from(activeLines).some(
+							(line) => line >= lineStart && line <= lineEnd,
+						);
+
+						const type = node.name;
+
+						// --- Heading Styles ---
+						if (type.startsWith("ATXHeading")) {
+							const level = parseInt(type.slice(10), 10);
+							if (!Number.isNaN(level)) {
+								try {
+									const startLinePos = view.state.doc.line(lineStart).from;
+									builder.push(
+										Decoration.line({
+											class: `cm-heading cm-h${level}`,
+										}).range(startLinePos, startLinePos),
+									);
+								} catch {
+									// ignore
+								}
+							}
+						}
+
+						// --- Strong and Emphasis Styles ---
+						if (type === "StrongEmphasis" && node.from < node.to) {
+							builder.push(
+								Decoration.mark({ class: "cm-bold" }).range(node.from, node.to),
+							);
+						}
+						if (type === "Emphasis" && node.from < node.to) {
+							builder.push(
+								Decoration.mark({ class: "cm-italic" }).range(
+									node.from,
+									node.to,
+								),
+							);
+						}
+
+						// --- Inline Code Style ---
+						if (type === "InlineCode" && node.from < node.to) {
+							builder.push(
+								Decoration.mark({ class: "cm-inline-code" }).range(
+									node.from,
+									node.to,
+								),
+							);
+						}
+
+						// --- Blockquote Style ---
+						if (type === "BlockQuote") {
+							try {
+								for (let l = lineStart; l <= lineEnd; l++) {
+									const startLinePos = view.state.doc.line(l).from;
+									builder.push(
+										Decoration.line({
+											class: "cm-blockquote",
+										}).range(startLinePos, startLinePos),
+									);
+								}
+							} catch {
+								// ignore
+							}
+						}
+
+						// Se o cursor estiver na linha deste nó, mostramos o markdown cru (revelação ao cursor)
+						if (isCursorOnLine) return;
+
+						// --- Hiding HeaderMark (#, ##...) ---
+						if (type === "HeaderMark" && node.from < node.to) {
+							builder.push(Decoration.replace({}).range(node.from, node.to));
+						}
+
+						// --- Hiding EmphasisMark (*, **, _, __) ---
+						if (type === "EmphasisMark" && node.from < node.to) {
+							builder.push(Decoration.replace({}).range(node.from, node.to));
+						}
+
+						// --- Hiding CodeMark (`) ---
+						if (type === "CodeMark" && node.from < node.to) {
+							builder.push(Decoration.replace({}).range(node.from, node.to));
+						}
+
+						// --- Hiding QuoteMark (>) ---
+						if (type === "QuoteMark" && node.from < node.to) {
+							builder.push(Decoration.replace({}).range(node.from, node.to));
+						}
+
+						// HorizontalRule (---) é tratado pelo hrField (StateField),
+						// porque decorações de bloco não podem vir de ViewPlugin.
+					},
+				});
+			}
+
+			// Ordena por posição de início
+			builder.sort((a, b) => a.from - b.from);
+			return Decoration.set(builder, true);
+		}
+	},
+	{
+		decorations: (v) => v.decorations,
+	},
+);
+
+// Decorações de BLOCO (---) precisam vir de um StateField, não de um ViewPlugin
+// (CodeMirror: "Block decorations may not be specified via plugins").
+function buildHrDecorations(state: EditorState): DecorationSet {
+	const builder: Range<Decoration>[] = [];
+	const activeLines = new Set<number>();
+	for (const range of state.selection.ranges) {
+		activeLines.add(state.doc.lineAt(range.head).number);
+	}
+	syntaxTree(state).iterate({
+		enter(node) {
+			if (node.name === "HorizontalRule" && node.from < node.to) {
+				const ln = state.doc.lineAt(node.from).number;
+				// Cursor na linha → revela o markdown cru (---)
+				if (activeLines.has(ln)) return;
+				builder.push(
+					Decoration.replace({ widget: new HRWidget(), block: true }).range(
+						node.from,
+						node.to,
+					),
+				);
+			}
+		},
+	});
+	return Decoration.set(builder, true);
+}
+
+const hrField = StateField.define<DecorationSet>({
+	create: (state) => buildHrDecorations(state),
+	update(deco, tr) {
+		if (tr.docChanged || tr.selection) return buildHrDecorations(tr.state);
+		return deco.map(tr.changes);
+	},
+	provide: (f) => EditorView.decorations.from(f),
+});
+
 // --- Fonte de Autocomplete customizada (/, @, #) ---
 const customCompletionSource = (
 	context: CompletionContext,
@@ -258,11 +445,8 @@ export function DailyEditor({
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
 	const saveMutation = useSaveNote();
-	const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
-		"saved",
-	);
 
-	// Referências mutáveis para o debounce de escrita e flush
+	// Referências mutáveis para o de-bounce de escrita e flush
 	const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const currentContentRef = useRef(initialValue);
 	const lastSavedContentRef = useRef(initialValue);
@@ -273,10 +457,22 @@ export function DailyEditor({
 		onLinkClickRef.current = onLinkClick;
 	}, [onLinkClick]);
 
+	// Helper para contar palavras
+	const countWords = useCallback((text: string) => {
+		if (!text.trim()) return 0;
+		return text.trim().split(/\s+/).length;
+	}, []);
+
 	// Atualiza referências quando o initialValue muda do exterior
 	useEffect(() => {
 		currentContentRef.current = initialValue;
 		lastSavedContentRef.current = initialValue;
+
+		// Atualiza contadores iniciais no store
+		useVaultStore.getState().setActiveWordCount(countWords(initialValue));
+		useVaultStore.getState().setActiveSaveStatus("saved");
+		useVaultStore.getState().setActiveCursorPos({ line: 1, col: 1 });
+
 		if (viewRef.current) {
 			const currentViewText = viewRef.current.state.doc.toString();
 			if (currentViewText !== initialValue) {
@@ -289,7 +485,7 @@ export function DailyEditor({
 				});
 			}
 		}
-	}, [initialValue]);
+	}, [initialValue, countWords]);
 
 	// Função de salvamento imediata (Flush)
 	const flushSave = useCallback(() => {
@@ -299,16 +495,16 @@ export function DailyEditor({
 		}
 		const currentText = currentContentRef.current;
 		if (currentText !== lastSavedContentRef.current) {
-			setSaveStatus("saving");
+			useVaultStore.getState().setActiveSaveStatus("saving");
 			saveMutation.mutate(
 				{ path: filePath, content: currentText },
 				{
 					onSuccess: () => {
 						lastSavedContentRef.current = currentText;
-						setSaveStatus("saved");
+						useVaultStore.getState().setActiveSaveStatus("saved");
 					},
 					onError: () => {
-						setSaveStatus("unsaved");
+						useVaultStore.getState().setActiveSaveStatus("unsaved");
 					},
 				},
 			);
@@ -321,26 +517,38 @@ export function DailyEditor({
 
 		// Listener de modificação
 		const updateListener = EditorView.updateListener.of((update) => {
+			// Atualiza posição do cursor no statusbar
+			if (update.docChanged || update.selectionSet) {
+				const head = update.state.selection.main.head;
+				const lineObj = update.state.doc.lineAt(head);
+				const line = lineObj.number;
+				const col = head - lineObj.from + 1;
+				useVaultStore.getState().setActiveCursorPos({ line, col });
+			}
+
 			if (update.docChanged) {
 				const newVal = update.state.doc.toString();
 				currentContentRef.current = newVal;
-				setSaveStatus("unsaved");
+
+				// Atualiza contagem de palavras
+				useVaultStore.getState().setActiveWordCount(countWords(newVal));
+				useVaultStore.getState().setActiveSaveStatus("unsaved");
 
 				// Cancela o timeout pendente
 				if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
 				// Agenda salvamento com 1s debounce
 				saveTimeoutRef.current = setTimeout(() => {
-					setSaveStatus("saving");
+					useVaultStore.getState().setActiveSaveStatus("saving");
 					saveMutation.mutate(
 						{ path: filePath, content: newVal },
 						{
 							onSuccess: () => {
 								lastSavedContentRef.current = newVal;
-								setSaveStatus("saved");
+								useVaultStore.getState().setActiveSaveStatus("saved");
 							},
 							onError: () => {
-								setSaveStatus("unsaved");
+								useVaultStore.getState().setActiveSaveStatus("unsaved");
 							},
 						},
 					);
@@ -352,8 +560,9 @@ export function DailyEditor({
 		const clickHandler = EditorView.domEventHandlers({
 			click(event) {
 				const target = event.target as HTMLElement;
-				if (target.classList.contains("cm-chip-link")) {
-					const cleanLink = target.innerText
+				const linkChip = target.closest(".cm-chip-link");
+				if (linkChip instanceof HTMLElement) {
+					const cleanLink = linkChip.innerText
 						.replace(/^\[\[/, "")
 						.replace(/\]\]$/, "")
 						.trim();
@@ -372,6 +581,8 @@ export function DailyEditor({
 					markdown(),
 					autocompletion({ override: [customCompletionSource] }),
 					chipPlugin,
+					livePreviewPlugin,
+					hrField,
 					updateListener,
 					clickHandler,
 					EditorView.lineWrapping,
@@ -392,43 +603,46 @@ export function DailyEditor({
 			viewRef.current = null;
 			useVaultStore.getState().setActiveEditor(null, null);
 		};
-	}, [
-		filePath,
-		saveMutation.mutate, // Executa o flush de salvamento pendente ANTES de destruir a view
-		flushSave,
-	]); // Recria o editor apenas se o arquivo mudar
+	}, [filePath, saveMutation.mutate, flushSave, countWords]);
+
+	// Decomposição da data para o layout do Data-Herói
+	const dateStr = dailyDateFromPath(filePath);
+	const getHeroDateParts = (dateVal: string | null) => {
+		if (!dateVal) return null;
+		try {
+			const d = new Date(`${dateVal}T12:00:00`);
+			const weekday =
+				d.toLocaleDateString("pt-BR", { weekday: "long" }).split("-")[0] || "";
+			const day = d.toLocaleDateString("pt-BR", { day: "numeric" });
+			const monthYear = d.toLocaleDateString("pt-BR", {
+				month: "long",
+				year: "numeric",
+			});
+			const cleanMonthYear = monthYear
+				.replace(" de ", " · ")
+				.replace(" de", "");
+			return { weekday, day, monthYear: cleanMonthYear };
+		} catch {
+			return { weekday: "", day: "", monthYear: dateVal };
+		}
+	};
+	const dateParts = getHeroDateParts(dateStr);
 
 	return (
-		<div className="flex flex-col h-full">
-			<div className="flex items-center justify-between px-6 py-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(18,18,22,0.3)]">
-				<div className="flex items-center gap-2">
-					<span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-						Editor
-					</span>
-					<span className="text-xs text-gray-500 font-mono">{filePath}</span>
-				</div>
-				<div className="flex items-center gap-2">
-					{saveStatus === "saved" && (
-						<span className="flex items-center gap-1.5 text-xs text-emerald-400">
-							<span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-							Salvo no disco
-						</span>
-					)}
-					{saveStatus === "saving" && (
-						<span className="flex items-center gap-1.5 text-xs text-indigo-400">
-							<span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
-							Salvando...
-						</span>
-					)}
-					{saveStatus === "unsaved" && (
-						<span className="flex items-center gap-1.5 text-xs text-amber-400">
-							<span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-							Alterações não salvas
-						</span>
-					)}
-				</div>
+		<div className="editor-scroll">
+			<div className="editor-container">
+				{dateParts && (
+					<>
+						<div className="hero">
+							<span className="wd">{dateParts.weekday}</span>
+							<span className="dd">{dateParts.day}</span>
+							<span className="my">{dateParts.monthYear}</span>
+						</div>
+						<div className="hero-rule" />
+					</>
+				)}
+				<div className="prose" ref={editorRef} />
 			</div>
-			<div className="flex-1 overflow-y-auto px-8" ref={editorRef} />
 		</div>
 	);
 }

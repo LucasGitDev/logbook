@@ -17,34 +17,34 @@ export function AgendaView({ items }: AgendaViewProps) {
 
 	return (
 		<div>
-			<h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+			<h3 className="text-xs font-semibold text-fg-4 uppercase tracking-wider mb-3 flex items-center justify-between font-mono">
 				<span>Agenda do Dia</span>
-				<span className="bg-[rgba(245,158,11,0.1)] text-amber-400 text-[10px] px-1.5 py-0.5 rounded-full">
+				<span className="bg-warn/10 text-warn text-[10px] px-1.5 py-0.5 rounded-full">
 					{items.length}
 				</span>
 			</h3>
 
 			{items.length === 0 ? (
-				<p className="text-xs text-gray-500 italic p-4 text-center bg-[rgba(255,255,255,0.01)] border border-dashed border-[rgba(255,255,255,0.03)] rounded-lg">
+				<p className="text-xs text-fg-5 italic p-4 text-center bg-surface border border-dashed border-line-soft rounded-lg font-mono">
 					Sem compromissos hoje
 				</p>
 			) : (
-				<div className="relative border-l border-[rgba(255,255,255,0.06)] pl-4 ml-2 flex flex-col gap-4">
+				<div className="relative border-l border-line pl-4 ml-2 flex flex-col gap-4">
 					{items.map((item) => (
 						<div key={item.id} className="relative group">
 							{/* Ponto indicador da timeline */}
-							<span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full border border-amber-400 bg-amber-400/20 group-hover:scale-125 transition-transform duration-200" />
+							<span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full border border-warn bg-warn/25 group-hover:scale-125 transition-transform duration-120" />
 
 							<div className="flex flex-col gap-1">
 								{/* Time and Duration Row */}
 								<div className="flex items-center gap-2">
-									<span className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 bg-[rgba(245,158,11,0.08)] px-2 py-0.5 rounded border border-[rgba(245,158,11,0.15)]">
+									<span className="inline-flex items-center gap-1 text-xs font-bold text-warn bg-warn/8 px-2 py-0.5 rounded border border-warn/15 font-mono">
 										<Clock className="h-3 w-3" />
 										{item.time}
 									</span>
 
 									{item.durationMin && (
-										<span className="inline-flex items-center gap-1 text-[10px] font-medium text-cyan-400 bg-[rgba(6,182,212,0.08)] px-1.5 py-0.5 rounded border border-[rgba(6,182,212,0.15)]">
+										<span className="inline-flex items-center gap-1 text-[10px] font-medium text-cyan bg-cyan/8 px-1.5 py-0.5 rounded border border-cyan/15 font-mono">
 											<Timer className="h-3 w-3" />
 											{formatDuration(item.durationMin)}
 										</span>
@@ -52,7 +52,7 @@ export function AgendaView({ items }: AgendaViewProps) {
 								</div>
 
 								{/* Event Text */}
-								<p className="text-sm text-gray-200 break-words mt-0.5 font-medium leading-relaxed">
+								<p className="text-sm text-fg break-words mt-0.5 font-medium leading-relaxed">
 									{item.text}
 								</p>
 							</div>

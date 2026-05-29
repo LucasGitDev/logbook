@@ -4,6 +4,7 @@ import {
 	hasFrontmatter,
 	injectFrontmatterLazy,
 	parseFrontmatter,
+	updateFrontmatterFields,
 } from "./frontmatter";
 
 const WITH_FM = `---
@@ -109,5 +110,30 @@ describe("injectFrontmatterLazy", () => {
 		const { body } = parseFrontmatter(out);
 		expect(body.trimStart()).toBe(raw); // só uma linha em branco antes do corpo
 		expect(body.endsWith(raw)).toBe(true);
+	});
+});
+
+describe("updateFrontmatterFields", () => {
+	it("atualiza apenas os campos fornecidos preservando o ID e o corpo", () => {
+		const raw = `---
+id: MY-ID
+title: Old Title
+type: note
+created: 2026-05-28
+---
+# Original body
+- [ ] task
+`;
+		const out = updateFrontmatterFields(raw, {
+			title: "New Title",
+			aliases: ["alias1"],
+		});
+		const { data, body } = parseFrontmatter(out);
+		expect(data.id).toBe("MY-ID");
+		expect(data.title).toBe("New Title");
+		expect(data.aliases).toEqual(["alias1"]);
+		expect(data.created).toBeInstanceOf(Date);
+		expect(out).toContain("created: 2026-05-28");
+		expect(body.trim()).toBe("# Original body\n- [ ] task");
 	});
 });

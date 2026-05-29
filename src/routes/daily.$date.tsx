@@ -2,16 +2,22 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Calendar, RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 import { AgendaView } from "@/components/AgendaView";
+import { CommandPalette } from "@/components/CommandPalette";
 import { DailyEditor } from "@/components/DailyEditor";
 import { Sidebar } from "@/components/Sidebar";
+import { Statusbar } from "@/components/Statusbar";
 import { TaskList } from "@/components/TaskList";
+import { Topbar } from "@/components/Topbar";
 import {
+	resolveLinkTarget,
 	useDailyAgenda,
 	useDailyNote,
 	useDailyTasks,
+	useSaveNote,
 	useVaultIndex,
 } from "@/lib/useVault";
 import { dailyNotePath } from "@/lib/vault";
+import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
 
 export const Route = createFileRoute("/daily/$date")({
@@ -23,6 +29,10 @@ function DailyView() {
 	const navigate = useNavigate();
 
 	const isLoaded = useVaultStore((state) => state.isLoaded);
+	const notes = useVaultStore((state) => state.notes);
+	const sidebarOpen = useUIStore((state) => state.sidebarOpen);
+	const panelOpen = useUIStore((state) => state.panelOpen);
+	const saveNoteMutation = useSaveNote();
 
 	// Sempre ativa o re-indexador automático quando o vault está carregado
 	const { isLoading: isIndexing } = useVaultIndex();
@@ -59,65 +69,110 @@ function DailyView() {
 		isNoteLoading || isTasksLoading || isAgendaLoading || isIndexing;
 
 	return (
-		<div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0c] text-gray-200">
-			{/* Sidebar de navegação */}
-			<Sidebar selectedDate={date} />
+		<div className="flex flex-col h-screen w-screen overflow-hidden bg-bg text-fg">
+			{/* Topbar global */}
+			<Topbar />
 
-			{/* Conteúdo Central: Editor */}
-			<main className="flex-1 flex flex-col h-full bg-[#0d0d11]">
-				{isLoadingData ? (
-					<div className="flex-1 flex flex-col items-center justify-center gap-3">
-						<RefreshCw className="h-8 w-8 text-indigo-500 animate-spin" />
-						<p className="text-sm text-gray-400 font-medium">
-							Carregando dados do dia...
-						</p>
-					</div>
-				) : (
-					<DailyEditor
-						initialValue={noteText ?? ""}
-						filePath={dailyNotePath(date)}
-						onLinkClick={(noteName) => {
-							// Navegação de wikilinks (se for data vai pra daily, senão vai p/ note na fase 3)
-							const isDate = /^\d{4}-\d{2}-\d{2}$/.test(noteName);
-							if (isDate) {
-								navigate({ to: "/daily/$date", params: { date: noteName } });
-							} else {
-								console.log("Wikilink clicado:", noteName);
-							}
-						}}
-					/>
-				)}
-			</main>
+			<div className="flex-1 flex min-h-0">
+				{/* Sidebar de navegação */}
+				{sidebarOpen && <Sidebar selectedDate={date} />}
 
-			{/* Painel Lateral Direito: Tarefas e Compromissos */}
-			<aside className="w-96 border-l border-[rgba(255,255,255,0.06)] bg-[rgba(10,10,12,0.4)] backdrop-blur-xl h-full flex flex-col overflow-hidden">
-				{/* Cabeçalho do Painel */}
-				<div className="p-6 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(18,18,22,0.2)]">
-					<div className="flex items-center gap-2 text-indigo-400 mb-1.5">
-						<Calendar className="h-4.5 w-4.5" />
-						<span className="text-[10px] font-bold uppercase tracking-wider">
-							Painel Diário
-						</span>
-					</div>
-					<h2 className="text-base font-bold text-white tracking-wide truncate">
-						{formatHeaderDate(date)}
-					</h2>
-					{isIndexing && (
-						<span className="text-[9px] text-gray-500 animate-pulse mt-1 inline-block">
-							Atualizando índices do vault...
-						</span>
+				{/* Conteúdo Central: Editor */}
+				<main className="editor">
+					{isLoadingData ? (
+						<div className="flex-1 flex flex-col items-center justify-center gap-3 h-full">
+							<RefreshCw className="h-8 w-8 text-accent animate-spin" />
+							<p className="text-sm text-fg-4 font-medium">
+								Carregando dados do dia...
+							</p>
+						</div>
+					) : (
+						<DailyEditor
+							initialValue={noteText ?? ""}
+							filePath={dailyNotePath(date)}
+							onLinkClick={(noteName) => {
+								const isDate = /^\d{4}-\d{2}-\d{2}$/.test(noteName);
+								if (isDate) {
+									navigate({ to: "/daily/$date", params: { date: noteName } });
+									return;
+								}
+
+								const targetNote = resolveLinkTarget(notes, noteName);
+								if (targetNote) {
+									navigate({ to: "/note/$id", params: { id: targetNote.id } });
+								} else {
+									const create = confirm(
+										`A nota "${noteName}" não existe. Deseja criá-la agora?`,
+									);
+									if (create) {
+										const path = `notes/${noteName}.md`;
+										saveNoteMutation.mutate(
+											{ path, content: `# ${noteName}\n\n` },
+											{
+												onSuccess: ({ index }) => {
+													const newNote = resolveLinkTarget(
+														index.notes,
+														noteName,
+													);
+													if (newNote) {
+														navigate({
+															to: "/note/$id",
+															params: { id: newNote.id },
+														});
+													}
+												},
+												onError: (err) => {
+													alert(
+														`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
+													);
+												},
+											},
+										);
+									}
+								}
+							}}
+						/>
 					)}
-				</div>
+				</main>
 
-				{/* Listas Roláveis */}
-				<div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
-					<AgendaView items={agenda} />
+				{/* Painel Lateral Direito: Tarefas e Compromissos */}
+				{panelOpen && (
+					<aside className="panel">
+						{/* Cabeçalho do Painel */}
+						<div className="p-4 border-b border-line-soft bg-footer">
+							<div className="flex items-center gap-2 text-accent-soft mb-1.5 font-mono">
+								<Calendar className="h-4.5 w-4.5" />
+								<span className="text-[10px] font-bold uppercase tracking-wider">
+									Painel Diário
+								</span>
+							</div>
+							<h2 className="text-sm font-bold text-fg-strong tracking-wide truncate">
+								{formatHeaderDate(date)}
+							</h2>
+							{isIndexing && (
+								<span className="text-[9px] text-fg-5 mt-1 inline-block font-mono">
+									Atualizando índices do vault...
+								</span>
+							)}
+						</div>
 
-					<hr className="border-[rgba(255,255,255,0.04)]" />
+						{/* Listas Roláveis */}
+						<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+							<AgendaView items={agenda} />
 
-					<TaskList tasks={tasks} date={date} />
-				</div>
-			</aside>
+							<hr className="border-line-soft" />
+
+							<TaskList tasks={tasks} date={date} />
+						</div>
+					</aside>
+				)}
+			</div>
+
+			{/* Statusbar global */}
+			<Statusbar />
+
+			{/* Command Palette */}
+			<CommandPalette />
 		</div>
 	);
 }

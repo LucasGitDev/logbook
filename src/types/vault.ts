@@ -76,5 +76,6 @@ export interface VaultState {
 	agendaItems: AgendaItem[];
 	projects: Project[];
 	notes: Note[];
+	links: LinkGraph;
 	isLoaded: boolean;
 }

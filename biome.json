@@ -12,7 +12,9 @@
 			"!src/routeTree.gen.ts",
 			"!dist",
 			"!coverage",
-			"!src/styles/globals.css"
+			"!src/styles/globals.css",
+			"!docs",
+			"!dist"
 		]
 	},
 	"formatter": {

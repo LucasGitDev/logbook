@@ -45,3 +45,8 @@ coverage/
 
 # TanStack Router codegen
 src/routeTree.gen.ts
+
+# test/preview artifacts
+.playwright-mcp/
+wf-*.png
+live-*.png

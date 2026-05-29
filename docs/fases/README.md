@@ -3,15 +3,16 @@
 O trabalho é dividido em 5 fases sequenciais. Cada fase entrega algo usável de ponta a ponta e desbloqueia a próxima.
 
 ```
-Fase 1 ──▶ Fase 2 ──▶ Fase 3 ──▶ Fase 4 ──▶ Fase 5
-Vault &    Daily       Notas &     Task        Polimento
-Parser     View        Links       System
+Fase 1 ──▶ Fase 2 ──▶ Fase 2.5 ──▶ Fase 3 ──▶ Fase 4 ──▶ Fase 5
+Vault &    Daily       UI/UX        Notas &     Task        Polimento
+Parser     View        (Live Prev)  Links       System
 ```
 
 | Fase | Tema | Objetivo central | Entregável | Status |
 |---|---|---|---|---|
 | [**1**](./fase-1-vault-parser.md) | Vault & Parser | Ler/escrever arquivos reais; parsear frontmatter, sintaxe e links | Abrir vault, criar nota do dia, salvar `.md`, ver tasks/agenda/links parseados | ✅ Concluída |
 | [**2**](./fase-2-daily-view.md) | Daily View | A tela principal com editor rico | Editor `/`+`@`, ver tasks, marcar como feita (atualiza o `.md`), navegar dias | ✅ Concluída |
+| [**2.5**](./fase-2.5-ui-ux.md) | Redefinição UI/UX | Identidade dev + editor Live Preview | 2 temas, render markdown ao vivo (Notion-like), statusbar/topbar, `⌘K`, modo foco | ✅ Concluída |
 | [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link | ⬜ A fazer |
 | [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; inbox; filtro por projeto; visão semanal | ⬜ A fazer |
 | [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | App pronto pra uso diário: tema, responsivo, git, atalhos | ⬜ A fazer |

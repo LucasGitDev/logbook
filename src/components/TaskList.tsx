@@ -33,9 +33,9 @@ export function TaskList({ tasks, date }: TaskListProps) {
 		return (
 			<div
 				key={task.id}
-				className={`flex items-start gap-3 p-3 rounded-lg border border-[rgba(255,255,255,0.03)] bg-[rgba(255,255,255,0.01)] hover:bg-[rgba(255,255,255,0.03)] transition-all duration-200 group ${
+				className={`flex items-start gap-3 p-3 rounded-lg border border-line-soft bg-surface hover:bg-surface-hover transition-all duration-120 group ${
 					isDone ? "opacity-60" : ""
-				} ${isToggling ? "animate-pulse" : ""}`}
+				} ${isToggling ? "opacity-50" : ""}`}
 			>
 				<button
 					type="button"
@@ -44,16 +44,16 @@ export function TaskList({ tasks, date }: TaskListProps) {
 					className="mt-0.5 focus:outline-none flex-shrink-0"
 				>
 					{isDone ? (
-						<CheckSquare className="h-4.5 w-4.5 text-emerald-400 fill-emerald-400/10 cursor-pointer transition-all duration-200 hover:scale-110" />
+						<CheckSquare className="h-4.5 w-4.5 text-success fill-success/10 cursor-pointer transition-all duration-120 hover:scale-110" />
 					) : (
-						<Square className="h-4.5 w-4.5 text-gray-500 cursor-pointer transition-all duration-200 hover:text-indigo-400 hover:scale-110" />
+						<Square className="h-4.5 w-4.5 text-fg-5 cursor-pointer transition-all duration-120 hover:text-accent hover:scale-110" />
 					)}
 				</button>
 
 				<div className="flex-1 min-w-0">
 					<p
-						className={`text-sm text-gray-200 break-words ${
-							isDone ? "line-through text-gray-500" : ""
+						className={`text-sm text-fg break-words ${
+							isDone ? "line-through text-fg-5" : ""
 						}`}
 					>
 						{task.text}
@@ -62,21 +62,21 @@ export function TaskList({ tasks, date }: TaskListProps) {
 					{/* Metadata Row */}
 					<div className="flex flex-wrap items-center gap-2 mt-1.5">
 						{task.project && (
-							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[rgba(236,72,153,0.1)] border border-[rgba(236,72,153,0.2)] text-pink-400">
+							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink">
 								<Hash className="h-2.5 w-2.5" />
 								{task.project}
 							</span>
 						)}
 
 						{task.scheduledDate && task.scheduledDate !== date && (
-							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.15)] text-emerald-400">
+							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-success/8 border border-success/15 text-success">
 								<Calendar className="h-2.5 w-2.5" />
 								Agendada: {task.scheduledDate}
 							</span>
 						)}
 
 						{task.createdDate && task.createdDate !== date && (
-							<span className="inline-flex items-center gap-1 text-[10px] text-gray-500">
+							<span className="inline-flex items-center gap-1 text-[10px] text-fg-5">
 								Criada em: {task.createdDate}
 							</span>
 						)}
@@ -90,14 +90,14 @@ export function TaskList({ tasks, date }: TaskListProps) {
 		<div className="flex flex-col gap-6">
 			{/* Seção: Agendadas para hoje */}
 			<div>
-				<h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+				<h3 className="text-xs font-semibold text-fg-4 uppercase tracking-wider mb-3 flex items-center justify-between font-mono">
 					<span>Agendadas para Hoje</span>
-					<span className="bg-[rgba(99,102,241,0.1)] text-indigo-400 text-[10px] px-1.5 py-0.5 rounded-full">
+					<span className="bg-accent/10 text-accent-soft text-[10px] px-1.5 py-0.5 rounded-full">
 						{scheduledTasks.length}
 					</span>
 				</h3>
 				{scheduledTasks.length === 0 ? (
-					<p className="text-xs text-gray-500 italic p-3 text-center bg-[rgba(255,255,255,0.01)] border border-dashed border-[rgba(255,255,255,0.03)] rounded-lg">
+					<p className="text-xs text-fg-5 italic p-3 text-center bg-surface border border-dashed border-line-soft rounded-lg font-mono">
 						Nenhuma tarefa agendada
 					</p>
 				) : (
@@ -109,14 +109,14 @@ export function TaskList({ tasks, date }: TaskListProps) {
 
 			{/* Seção: Criadas hoje */}
 			<div>
-				<h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+				<h3 className="text-xs font-semibold text-fg-4 uppercase tracking-wider mb-3 flex items-center justify-between font-mono">
 					<span>Criadas Hoje</span>
-					<span className="bg-[rgba(255,255,255,0.06)] text-gray-400 text-[10px] px-1.5 py-0.5 rounded-full">
+					<span className="bg-surface-strong text-fg-4 text-[10px] px-1.5 py-0.5 rounded-full">
 						{createdTasks.length}
 					</span>
 				</h3>
 				{createdTasks.length === 0 ? (
-					<p className="text-xs text-gray-500 italic p-3 text-center bg-[rgba(255,255,255,0.01)] border border-dashed border-[rgba(255,255,255,0.03)] rounded-lg">
+					<p className="text-xs text-fg-5 italic p-3 text-center bg-surface border border-dashed border-line-soft rounded-lg font-mono">
 						Nenhuma outra tarefa criada
 					</p>
 				) : (

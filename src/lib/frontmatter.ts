@@ -84,3 +84,32 @@ export function injectFrontmatterLazy(
 	}
 	return `${buildFrontmatterBlock(fields)}\n${raw}`;
 }
+
+function coerceDate(value: unknown): string {
+	if (value instanceof Date) return value.toISOString().slice(0, 10);
+	if (typeof value === "string") return value;
+	return "";
+}
+
+/**
+ * Altera campos específicos do frontmatter (como title, aliases, etc.) de um arquivo markdown
+ * preservando o corpo original byte a byte e sem alterar chaves irrelevantes.
+ */
+export function updateFrontmatterFields(
+	raw: string,
+	updatedFields: Partial<FrontmatterFields>,
+): string {
+	const { data, body } = parseFrontmatter(raw);
+	const fields: FrontmatterFields = {
+		id: typeof data.id === "string" ? data.id : undefined,
+		title: typeof data.title === "string" ? data.title : "",
+		type: (typeof data.type === "string" ? data.type : "note") as NoteType,
+		tags: Array.isArray(data.tags) ? (data.tags as string[]) : undefined,
+		created: coerceDate(data.created),
+		aliases: Array.isArray(data.aliases)
+			? (data.aliases as string[])
+			: undefined,
+		...updatedFields,
+	};
+	return `${buildFrontmatterBlock(fields)}\n${body}`;
+}
