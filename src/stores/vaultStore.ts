@@ -15,6 +15,8 @@ interface VaultStore extends VaultState {
 	activeWordCount: number;
 	activeSaveStatus: "saved" | "saving" | "unsaved";
 	activeCursorPos: { line: number; col: number };
+	gitBranch: string | null;
+	setGitBranch: (branch: string | null) => void;
 	setRootHandle: (handle: FileSystemDirectoryHandle | null) => void;
 	setActiveEditor: (view: EditorView | null, filePath: string | null) => void;
 	setActiveWordCount: (count: number) => void;
@@ -47,6 +49,8 @@ export const useVaultStore = create<VaultStore>((set) => ({
 	activeWordCount: 0,
 	activeSaveStatus: "saved",
 	activeCursorPos: { line: 1, col: 1 },
+	gitBranch: null,
+	setGitBranch: (gitBranch) => set({ gitBranch }),
 	setRootHandle: (rootHandle) =>
 		set({ rootHandle, isLoaded: rootHandle !== null }),
 	setActiveEditor: (view, filePath) =>
@@ -70,5 +74,6 @@ export const useVaultStore = create<VaultStore>((set) => ({
 			activeWordCount: 0,
 			activeSaveStatus: "saved",
 			activeCursorPos: { line: 1, col: 1 },
+			gitBranch: null,
 		}),
 }));

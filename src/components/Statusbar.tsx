@@ -1,3 +1,4 @@
+import { GitBranch } from "lucide-react";
 import { useVaultStore } from "@/stores/vaultStore";
 
 export function Statusbar() {
@@ -5,6 +6,7 @@ export function Statusbar() {
 	const activeWordCount = useVaultStore((state) => state.activeWordCount);
 	const activeSaveStatus = useVaultStore((state) => state.activeSaveStatus);
 	const activeCursorPos = useVaultStore((state) => state.activeCursorPos);
+	const gitBranch = useVaultStore((state) => state.gitBranch);
 
 	return (
 		<div className="statusbar">
@@ -37,6 +39,12 @@ export function Statusbar() {
 
 			<span className="spacer" />
 
+			{gitBranch && (
+				<span className="sb-cell" title="Branch do repositório git do vault">
+					<GitBranch className="h-3 w-3" />
+					{gitBranch}
+				</span>
+			)}
 			<span className="sb-cell">markdown</span>
 			<span className="sb-cell">UTF-8</span>
 			<span className="sb-cell">
