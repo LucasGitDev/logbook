@@ -78,6 +78,7 @@ export function parseLine(
 
 	if (agendaDate && time) {
 		const duration = DURATION_RE.exec(line);
+		const agendaProject = PROJECT_RE.exec(line);
 		const item: AgendaItem = {
 			id,
 			text,
@@ -88,6 +89,7 @@ export function parseLine(
 			sourceLine: lineNo,
 		};
 		if (duration) item.durationMin = Number(duration[1]);
+		if (agendaProject) item.project = agendaProject[1];
 		return item;
 	}
 
@@ -127,6 +129,23 @@ export function extractLinks(body: string): string[] {
 export function setTaskStatus(line: string, status: TaskStatus): string {
 	const mark = status === "done" ? "x" : " ";
 	return line.replace(/^(\s*- \[)[ xX](\])/, `$1${mark}$2`);
+}
+
+/**
+ * Reescreve (ou acrescenta) a data de agendamento 📅 numa linha de checkbox,
+ * preservando o resto byte a byte. Se já houver `📅 YYYY-MM-DD`, troca só a
+ * data; senão acrescenta ` 📅 ${date}` ao fim. Linha não-checkbox volta
+ * inalterada (a verdade está no .md; nunca tocar linha que não é task).
+ */
+export function setTaskScheduledDate(line: string, date: string): string {
+	if (!CHECKBOX.test(line)) return line;
+	if (SCHEDULED_RE.test(line)) {
+		return line.replace(
+			new RegExp(`(${CALENDAR}\\s*)${DATE}`, "u"),
+			`$1${date}`,
+		);
+	}
+	return `${line.replace(/\s+$/, "")} ${CALENDAR} ${date}`;
 }
 
 /** Parseia o corpo inteiro de um nó: tasks, agenda e links de saída. */

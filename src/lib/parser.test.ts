@@ -5,6 +5,7 @@ import {
 	extractLinks,
 	parseLine,
 	parseNoteBody,
+	setTaskScheduledDate,
 	setTaskStatus,
 } from "./parser";
 
@@ -87,6 +88,12 @@ describe("parseLine — agenda", () => {
 		expect(a.time).toBe("09:30");
 		expect(a.durationMin).toBeUndefined();
 	});
+
+	it("agenda com projeto (#tag)", () => {
+		const a = agenda("- [ ] 1:1 🗓️ 2026-05-29 ⏰ 14:00 #pessoas");
+		expect(a.text).toBe("1:1");
+		expect(a.project).toBe("pessoas");
+	});
 });
 
 describe("cleanText", () => {
@@ -120,6 +127,42 @@ describe("setTaskStatus — round-trip", () => {
 
 	it("linha não-checkbox inalterada", () => {
 		expect(setTaskStatus("texto", "done")).toBe("texto");
+	});
+});
+
+describe("setTaskScheduledDate — carry-over", () => {
+	it("substitui 📅 existente, preserva o resto", () => {
+		const r = setTaskScheduledDate(
+			"- [ ] Revisar PR 📅 2026-05-30 #infra",
+			"2026-05-31",
+		);
+		expect(r).toBe("- [ ] Revisar PR 📅 2026-05-31 #infra");
+	});
+
+	it("acrescenta 📅 quando ausente", () => {
+		expect(setTaskScheduledDate("- [ ] Sem data", "2026-05-30")).toBe(
+			"- [ ] Sem data 📅 2026-05-30",
+		);
+	});
+
+	it("preserva status feito ([x]) e [[links]]", () => {
+		const r = setTaskScheduledDate(
+			"- [x] Falar com [[gestor]] 📅 2026-05-29",
+			"2026-06-01",
+		);
+		expect(r).toBe("- [x] Falar com [[gestor]] 📅 2026-06-01");
+	});
+
+	it("preserva indentação ao acrescentar", () => {
+		expect(setTaskScheduledDate("  - [ ] sub", "2026-05-30")).toBe(
+			"  - [ ] sub 📅 2026-05-30",
+		);
+	});
+
+	it("linha não-checkbox inalterada", () => {
+		expect(setTaskScheduledDate("texto solto", "2026-05-30")).toBe(
+			"texto solto",
+		);
 	});
 });
 
