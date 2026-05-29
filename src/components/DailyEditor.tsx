@@ -368,7 +368,7 @@ const hrField = StateField.define<DecorationSet>({
 });
 
 // --- Fonte de Autocomplete customizada (/, @, #) ---
-const customCompletionSource = (
+export const customCompletionSource = (
 	context: CompletionContext,
 ): CompletionResult | null => {
 	const word = context.matchBefore(/[/@#]\w*/);
