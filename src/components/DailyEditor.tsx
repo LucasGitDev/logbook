@@ -1,5 +1,4 @@
 import {
-	autocompletion,
 	type Completion,
 	type CompletionContext,
 	type CompletionResult,
@@ -601,13 +600,18 @@ export function DailyEditor({
 			},
 		});
 
+		const md = markdown();
 		const view = new EditorView({
 			state: EditorState.create({
 				doc: currentContentRef.current,
 				extensions: [
 					basicSetup,
-					markdown(),
-					autocompletion({ override: [customCompletionSource] }),
+					md,
+					// Registra a fonte de autocomplete (/ @ #) via language data.
+					// basicSetup já inclui autocompletion(); um 2º autocompletion()
+					// duplicaria a config e o override seria ignorado (sintoma:
+					// nenhum popup ao digitar / ou @).
+					md.language.data.of({ autocomplete: customCompletionSource }),
 					chipPlugin,
 					livePreviewPlugin,
 					hrField,
