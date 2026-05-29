@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { getLocalDateString } from "@/lib/dates";
 import { injectFrontmatterLazy } from "@/lib/frontmatter";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
-import { setTaskStatus } from "@/lib/parser";
+import { setTaskScheduledDate, setTaskStatus } from "@/lib/parser";
 import {
 	dailyNotePath,
 	ensureDailyNote,
@@ -147,6 +147,71 @@ export function useSaveNote() {
 				if (note) {
 					queryClient.invalidateQueries({ queryKey: ["note", note.id] });
 				}
+			}
+		},
+	});
+}
+
+/** Mutation para reagendar uma task (carry-over): reescreve o 📅 na origem */
+export function useRescheduleTask() {
+	const queryClient = useQueryClient();
+	const rootHandle = useVaultStore((state) => state.rootHandle);
+	const activeFilePath = useVaultStore((state) => state.activeFilePath);
+	const activeEditorView = useVaultStore((state) => state.activeEditorView);
+
+	return useMutation({
+		mutationFn: async ({ task, date }: { task: Task; date: string }) => {
+			if (!rootHandle) throw new Error("Vault não inicializado");
+
+			// Fast-path: task no arquivo aberto no editor ativo → reescreve a linha.
+			if (activeFilePath === task.sourceFile && activeEditorView) {
+				const view = activeEditorView;
+				try {
+					const line = view.state.doc.line(task.sourceLine);
+					const newLine = setTaskScheduledDate(line.text, date);
+					view.dispatch({
+						changes: { from: line.from, to: line.to, insert: newLine },
+					});
+					return { handledByEditor: true, sourceFile: task.sourceFile };
+				} catch (e) {
+					console.warn(
+						"Não foi possível reagendar pelo CodeMirror, fallback p/ disco:",
+						e,
+					);
+				}
+			}
+
+			// Fallback: reescreve a linha direto no disco.
+			const content = await readFile(rootHandle, task.sourceFile);
+			if (content === null) {
+				throw new Error(`Arquivo não encontrado: ${task.sourceFile}`);
+			}
+			const lines = content.split(/\r?\n/);
+			if (task.sourceLine <= 0 || task.sourceLine > lines.length) {
+				throw new Error(
+					`Linha inválida ${task.sourceLine} no arquivo ${task.sourceFile}`,
+				);
+			}
+			lines[task.sourceLine - 1] = setTaskScheduledDate(
+				lines[task.sourceLine - 1] ?? "",
+				date,
+			);
+			await writeFile(rootHandle, task.sourceFile, lines.join("\n"));
+
+			const index = await reindexVault(rootHandle);
+			return { handledByEditor: false, sourceFile: task.sourceFile, index };
+		},
+		onSuccess: (result) => {
+			if (!result.handledByEditor && result.index) {
+				useVaultStore.getState().setVaultData(result.index);
+				queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+			}
+
+			const date = dailyDateFromPath(result.sourceFile);
+			if (date) {
+				queryClient.invalidateQueries({ queryKey: ["dailyNote", date] });
+				queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
+				queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
 			}
 		},
 	});

@@ -1,5 +1,4 @@
-import { Calendar, CheckSquare, Hash, Square } from "lucide-react";
-import { useToggleTask } from "@/lib/useVault";
+import { TaskRow } from "@/components/TaskRow";
 import type { Task } from "@/types/vault";
 
 interface TaskListProps {
@@ -8,83 +7,14 @@ interface TaskListProps {
 }
 
 export function TaskList({ tasks, date }: TaskListProps) {
-	const toggleTaskMutation = useToggleTask();
-
 	// Deduplica e divide as tarefas
 	// 1. Agendadas para hoje (independente de onde foram criadas)
 	const scheduledTasks = tasks.filter((t) => t.scheduledDate === date);
 
-	// 2. Criadas hoje, mas que não estão agendadas para hoje (para evitar duplicatas)
+	// 2. Criadas hoje, mas que não estão agendadas para hoje (evita duplicatas)
 	const createdTasks = tasks.filter(
 		(t) => t.createdDate === date && t.scheduledDate !== date,
 	);
-
-	const handleToggle = (task: Task) => {
-		const newStatus = task.status === "open" ? "done" : "open";
-		toggleTaskMutation.mutate({ task, newStatus });
-	};
-
-	const renderTaskRow = (task: Task) => {
-		const isDone = task.status === "done";
-		const isToggling =
-			toggleTaskMutation.isPending &&
-			toggleTaskMutation.variables?.task.id === task.id;
-
-		return (
-			<div
-				key={task.id}
-				className={`flex items-start gap-3 p-3 rounded-lg border border-line-soft bg-surface hover:bg-surface-hover transition-all duration-120 group ${
-					isDone ? "opacity-60" : ""
-				} ${isToggling ? "opacity-50" : ""}`}
-			>
-				<button
-					type="button"
-					onClick={() => handleToggle(task)}
-					disabled={isToggling}
-					className="mt-0.5 focus:outline-none flex-shrink-0"
-				>
-					{isDone ? (
-						<CheckSquare className="h-4.5 w-4.5 text-success fill-success/10 cursor-pointer transition-all duration-120 hover:scale-110" />
-					) : (
-						<Square className="h-4.5 w-4.5 text-fg-5 cursor-pointer transition-all duration-120 hover:text-accent hover:scale-110" />
-					)}
-				</button>
-
-				<div className="flex-1 min-w-0">
-					<p
-						className={`text-sm text-fg break-words ${
-							isDone ? "line-through text-fg-5" : ""
-						}`}
-					>
-						{task.text}
-					</p>
-
-					{/* Metadata Row */}
-					<div className="flex flex-wrap items-center gap-2 mt-1.5">
-						{task.project && (
-							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-pink/10 border border-pink/20 text-pink">
-								<Hash className="h-2.5 w-2.5" />
-								{task.project}
-							</span>
-						)}
-
-						{task.scheduledDate && task.scheduledDate !== date && (
-							<span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-success/8 border border-success/15 text-success">
-								<Calendar className="h-2.5 w-2.5" />
-								Agendada: {task.scheduledDate}
-							</span>
-						)}
-
-						{task.createdDate && task.createdDate !== date && (
-							<span className="inline-flex items-center gap-1 text-[10px] text-fg-5">
-								Criada em: {task.createdDate}
-							</span>
-						)}
-					</div>
-				</div>
-			</div>
-		);
-	};
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -102,7 +32,9 @@ export function TaskList({ tasks, date }: TaskListProps) {
 					</p>
 				) : (
 					<div className="flex flex-col gap-2">
-						{scheduledTasks.map(renderTaskRow)}
+						{scheduledTasks.map((task) => (
+							<TaskRow key={task.id} task={task} referenceDate={date} />
+						))}
 					</div>
 				)}
 			</div>
@@ -121,7 +53,9 @@ export function TaskList({ tasks, date }: TaskListProps) {
 					</p>
 				) : (
 					<div className="flex flex-col gap-2">
-						{createdTasks.map(renderTaskRow)}
+						{createdTasks.map((task) => (
+							<TaskRow key={task.id} task={task} referenceDate={date} />
+						))}
 					</div>
 				)}
 			</div>
