@@ -8,7 +8,11 @@
 import { type IDBPDatabase, openDB } from "idb";
 
 const DB_NAME = "diario-de-bordo";
-const DB_VERSION = 2;
+// v3: força o upgrade idempotente a rodar e criar a store `preferences` em DBs
+// que ficaram em v2 sem ela (sequela do boot script antigo que abria com versão
+// fixa sem onupgradeneeded). O upgrade abaixo cria stores faltantes em qualquer
+// versão anterior.
+const DB_VERSION = 3;
 const STORE = "handles";
 const PREFS_STORE = "preferences";
 const VAULT_KEY = "vault-root";

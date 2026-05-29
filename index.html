@@ -8,20 +8,24 @@
     <script>
       (() => {
         try {
+          // Abre SEM versão (read-only): nunca cria/altera schema. Fecha a
+          // conexão logo após ler, pra não bloquear o upgrade do idb.ts.
           const req = indexedDB.open("diario-de-bordo");
           req.onsuccess = (e) => {
             const db = e.target.result;
-            if (db.objectStoreNames.contains("preferences")) {
-              const tx = db.transaction("preferences", "readonly");
-              const store = tx.objectStore("preferences");
-              const getReq = store.get("theme");
-              getReq.onsuccess = () => {
-                const theme = getReq.result;
-                if (theme) {
-                  document.documentElement.setAttribute("data-theme", theme);
-                }
-              };
+            if (!db.objectStoreNames.contains("preferences")) {
+              db.close();
+              return;
             }
+            const tx = db.transaction("preferences", "readonly");
+            const getReq = tx.objectStore("preferences").get("theme");
+            getReq.onsuccess = () => {
+              const theme = getReq.result;
+              if (theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+              }
+            };
+            tx.oncomplete = () => db.close();
           };
         } catch(err) {
           console.error(err);
