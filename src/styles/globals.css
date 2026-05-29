@@ -297,6 +297,17 @@ h6 {
 	width: 100%;
 }
 
+/* Mobile: o editor ocupa a tela toda; painel direito some (tasks/agenda ficam
+   acessíveis via rotas /inbox e /week). Sidebar vira drawer (ver _app.tsx). */
+@media (max-width: 767px) {
+	.panel {
+		display: none;
+	}
+	.editor-scroll {
+		padding: 20px 16px;
+	}
+}
+
 
 /* CodeMirror Decoration chips */
 .cm-chip {

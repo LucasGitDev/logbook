@@ -1,9 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, FolderOpen, RefreshCw, Sparkles } from "lucide-react";
+import {
+	ArrowRight,
+	FolderOpen,
+	MonitorX,
+	RefreshCw,
+	Sparkles,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { getLocalDateString } from "@/lib/dates";
 import { loadVaultHandle } from "@/lib/idb.ts";
-import { openVault, restoreVault } from "@/lib/vault";
+import {
+	isFileSystemAccessSupported,
+	openVault,
+	restoreVault,
+} from "@/lib/vault";
 import { useVaultStore } from "@/stores/vaultStore";
 
 export const Route = createFileRoute("/")({
@@ -87,6 +97,31 @@ function Home() {
 			setIsLoading(false);
 		}
 	};
+
+	// Navegador sem File System Access (Firefox/Safari/mobile): degrada com aviso.
+	if (!isFileSystemAccessSupported()) {
+		return (
+			<div className="min-h-screen w-screen bg-bg text-fg flex flex-col items-center justify-center p-6 select-none">
+				<div className="w-full max-w-md p-8 bg-bg-elev border border-line rounded-xl flex flex-col items-center text-center">
+					<div className="h-14 w-14 rounded-2xl bg-warn/15 flex items-center justify-center mb-6">
+						<MonitorX className="h-7 w-7 text-warn" />
+					</div>
+					<h1 className="text-xl font-bold text-fg-strong tracking-wide mb-2">
+						Navegador não compatível
+					</h1>
+					<p className="text-sm text-fg-4 leading-relaxed">
+						O Diário de Bordo lê e escreve arquivos locais via{" "}
+						<strong>File System Access API</strong>, que não está disponível
+						neste navegador/dispositivo. Abra no{" "}
+						<strong>Chrome, Edge ou Opera no desktop</strong>.
+					</p>
+				</div>
+				<footer className="mt-8 text-[11px] text-fg-5 font-mono">
+					Local-first architecture
+				</footer>
+			</div>
+		);
+	}
 
 	if (isCheckingRecent) {
 		return (

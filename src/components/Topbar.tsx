@@ -1,3 +1,4 @@
+import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -5,6 +6,7 @@ import { useVaultStore } from "@/stores/vaultStore";
 export function Topbar() {
 	const theme = useUIStore((state) => state.theme);
 	const setTheme = useUIStore((state) => state.setTheme);
+	const toggleSidebar = useUIStore((state) => state.toggleSidebar);
 	const setCommandPaletteOpen = useUIStore(
 		(state) => state.setCommandPaletteOpen,
 	);
@@ -33,6 +35,15 @@ export function Topbar() {
 
 	return (
 		<div className="topbar">
+			<button
+				type="button"
+				className="tb-btn md:hidden"
+				aria-label="Alternar menu"
+				onClick={toggleSidebar}
+			>
+				<Menu className="h-4 w-4" />
+			</button>
+
 			{rootHandle ? (
 				<span className="vault">
 					<span className="dot" />
