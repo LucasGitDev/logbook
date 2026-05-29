@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { getLocalDateString } from "@/lib/dates";
+import { addDays, getLocalDateString } from "@/lib/dates";
 import { updateFrontmatterFields } from "@/lib/frontmatter";
 import { clearVaultHandle } from "@/lib/idb";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
@@ -79,11 +79,79 @@ export function CommandPalette() {
 				toggleFocusMode();
 				return;
 			}
+
+			// Navegar dias: Cmd+Shift+← / Cmd+Shift+→ (anterior/próximo).
+			// Ignorado enquanto o foco está no editor/input (não rouba navegação).
+			if (
+				isMeta &&
+				e.shiftKey &&
+				(e.key === "ArrowLeft" || e.key === "ArrowRight")
+			) {
+				const el = document.activeElement;
+				const typing =
+					el instanceof HTMLElement &&
+					(el.isContentEditable ||
+						el.closest(".cm-editor") !== null ||
+						el.tagName === "INPUT" ||
+						el.tagName === "TEXTAREA");
+				if (typing) return;
+				const m = /^\/daily\/(\d{4}-\d{2}-\d{2})/.exec(
+					window.location.pathname,
+				);
+				if (!m?.[1]) return;
+				e.preventDefault();
+				const next = addDays(m[1], e.key === "ArrowLeft" ? -1 : 1);
+				navigate({ to: "/daily/$date", params: { date: next } });
+				return;
+			}
+
+			// Fechar aba ativa: Cmd+W (estilo VSCode).
+			// ⚠️ Reservado pelo navegador — best-effort; fallback = botão × na aba.
+			if (isMeta && e.key.toLowerCase() === "w") {
+				const { activeTabId, closeTab } = useUIStore.getState();
+				if (activeTabId) {
+					e.preventDefault();
+					closeTab(activeTabId);
+				}
+				return;
+			}
+
+			// Nova nota livre: Cmd+N.
+			// ⚠️ Reservado pelo navegador (nova janela) — best-effort; fallback = ⌘K / Sidebar.
+			if (isMeta && !e.shiftKey && e.key.toLowerCase() === "n") {
+				const root = useVaultStore.getState().rootHandle;
+				if (!root) return;
+				e.preventDefault();
+				const title = prompt(
+					"Digite o título da nova nota (será criada na pasta 'notes/'):",
+				)?.trim();
+				if (!title) return;
+				createNote(root, title)
+					.then(({ index, note }) => {
+						useVaultStore.getState().setVaultData(index);
+						queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+						if (note) navigate({ to: "/note/$id", params: { id: note.id } });
+					})
+					.catch((err) => {
+						alert(
+							`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
+						);
+					});
+				return;
+			}
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [isOpen, setIsOpen, toggleSidebar, togglePanel, toggleFocusMode]);
+	}, [
+		isOpen,
+		setIsOpen,
+		toggleSidebar,
+		togglePanel,
+		toggleFocusMode,
+		navigate,
+		queryClient,
+	]);
 
 	if (!isOpen) return null;
 
@@ -205,6 +273,15 @@ export function CommandPalette() {
 			label: "Modo foco (esconder painéis)",
 			keyHint: "⌘.",
 			action: () => toggleFocusMode(),
+		},
+		{
+			icon: "✕",
+			label: "Fechar aba ativa",
+			keyHint: "⌘W",
+			action: () => {
+				const { activeTabId, closeTab } = useUIStore.getState();
+				if (activeTabId) closeTab(activeTabId);
+			},
 		},
 		{
 			icon: "📅",
