@@ -197,15 +197,16 @@ async function listUnder(
 	return out;
 }
 
-/** Todos os `.md` sob `daily/` e `notes/` (caminhos relativos ao vault). */
+/** Todos os `.md` sob `daily/`, `notes/` e `tasks/` (caminhos relativos ao vault). */
 export async function listNoteFiles(
 	root: FileSystemDirectoryHandle,
 ): Promise<string[]> {
-	const [daily, notes] = await Promise.all([
+	const [daily, notes, tasks] = await Promise.all([
 		listUnder(root, "daily"),
 		listUnder(root, "notes"),
+		listUnder(root, "tasks"),
 	]);
-	return [...daily, ...notes];
+	return [...daily, ...notes, ...tasks];
 }
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────────
@@ -218,6 +219,7 @@ export async function bootstrapVault(
 		root.getDirectoryHandle("meta", { create: true }),
 		root.getDirectoryHandle("daily", { create: true }),
 		root.getDirectoryHandle("notes", { create: true }),
+		root.getDirectoryHandle("tasks", { create: true }),
 	]);
 	if (!(await fileExists(root, ".vault.json"))) {
 		const meta: VaultMeta = {

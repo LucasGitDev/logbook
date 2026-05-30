@@ -45,7 +45,13 @@ export function parseNoteContent(path: string, raw: string): ParsedNote {
 	const date = dailyDateFromPath(path);
 	const createdDate = date ?? coerceDate(data.created);
 	const { tasks, agenda, links } = parseNoteBody(body, path, createdDate);
-	const type: NoteType = date || data.type === "daily" ? "daily" : "note";
+	const type: NoteType =
+		date || data.type === "daily"
+			? "daily"
+			: data.type === "task"
+				? "task"
+				: "note";
+	const id = typeof data.id === "string" ? data.id : "";
 	const title =
 		typeof data.title === "string" && data.title
 			? data.title
@@ -62,8 +68,23 @@ export function parseNoteContent(path: string, raw: string): ParsedNote {
 		}
 	}
 
+	// Task-nó: a 1ª linha-checkbox é a canônica de estado. Enriquece-a com os
+	// metadados do nó (id/título/prioridade/esforço) p/ entrar no índice global
+	// como entidade forte (Inbox/Semana mostram chips, clique abre a rota do nó).
+	if (type === "task" && tasks[0]) {
+		tasks[0].nodeId = id;
+		tasks[0].title = title;
+		const priority = data.priority;
+		if (priority === "high" || priority === "medium" || priority === "low") {
+			tasks[0].priority = priority;
+		}
+		if (typeof data.effort === "string" && data.effort) {
+			tasks[0].effort = data.effort;
+		}
+	}
+
 	return {
-		id: typeof data.id === "string" ? data.id : "",
+		id,
 		title,
 		type,
 		tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],

@@ -53,6 +53,32 @@ Liga em [[reuniao]] e [[plano]].
 		expect(n.title).toBe("livre");
 		expect(n.type).toBe("note");
 	});
+
+	it("task-nó: type task, 1ª linha-checkbox enriquecida com metadados", () => {
+		const raw = `---
+id: 01HZTASK
+title: Deploy do app
+type: task
+priority: high
+effort: 2h
+created: 2026-05-29
+---
+- [/] Deploy do app 📅 2026-05-30 #infra
+
+Descrição livre. Liga em [[infra-q2]].
+`;
+		const n = parseNoteContent("tasks/Deploy do app.md", raw);
+		expect(n.type).toBe("task");
+		const t = n.tasks[0];
+		expect(t?.status).toBe("doing");
+		expect(t?.nodeId).toBe("01HZTASK");
+		expect(t?.title).toBe("Deploy do app");
+		expect(t?.priority).toBe("high");
+		expect(t?.effort).toBe("2h");
+		expect(t?.scheduledDate).toBe("2026-05-30");
+		expect(t?.project).toBe("infra");
+		expect(n.links).toEqual(["infra-q2"]);
+	});
 });
 
 describe("buildTaskIndex", () => {
