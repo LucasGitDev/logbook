@@ -338,13 +338,19 @@ export function CommandPalette() {
 
 	const noteCommands: CommandItem[] = notes.map((n) => {
 		const isDaily = n.type === "daily";
+		const isTask = n.type === "task";
 		const dailyDate = isDaily ? dailyDateFromPath(n.path) : null;
+		const icon = isDaily ? "📅" : isTask ? "◉" : "📄";
+		const prefix = isDaily ? "Diário" : isTask ? "Task" : "Nota";
 		return {
-			icon: isDaily ? "📅" : "📄",
-			label: isDaily && dailyDate ? `Diário: ${dailyDate}` : `Nota: ${n.title}`,
+			icon,
+			label:
+				isDaily && dailyDate ? `Diário: ${dailyDate}` : `${prefix}: ${n.title}`,
 			action: () => {
 				if (isDaily && dailyDate) {
 					navigate({ to: "/daily/$date", params: { date: dailyDate } });
+				} else if (isTask) {
+					navigate({ to: "/task/$id", params: { id: n.id } });
 				} else {
 					navigate({ to: "/note/$id", params: { id: n.id } });
 				}

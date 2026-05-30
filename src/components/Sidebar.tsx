@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	Calendar,
 	ChevronRight,
+	CircleDot,
 	Compass,
 	FileText,
 	FolderCheck,
@@ -28,6 +29,7 @@ export function Sidebar() {
 	});
 	const selectedDate = pathname.match(/^\/daily\/(.+)$/)?.[1];
 	const activeNoteId = pathname.match(/^\/note\/(.+)$/)?.[1];
+	const activeTaskId = pathname.match(/^\/task\/(.+)$/)?.[1];
 	const isInboxActive = pathname === "/inbox";
 	const isWeekActive = pathname === "/week";
 
@@ -50,6 +52,9 @@ export function Sidebar() {
 	const notes = useVaultStore((state) => state.notes);
 	const freeNotes = notes
 		.filter((n) => n.type === "note")
+		.sort((a, b) => a.title.localeCompare(b.title));
+	const taskNodes = notes
+		.filter((n) => n.type === "task")
 		.sort((a, b) => a.title.localeCompare(b.title));
 	const dailyDates = notes
 		.filter((n) => n.type === "daily")
@@ -231,6 +236,41 @@ export function Sidebar() {
 							</div>
 						)}
 					</div>
+
+					{taskNodes.length > 0 && (
+						<div>
+							<h2 className="px-3 text-[10px] font-bold text-fg-5 uppercase tracking-widest mb-2 font-mono">
+								Tarefas
+							</h2>
+							<div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto pr-1">
+								{taskNodes.map((node) => {
+									const isActive = node.id === activeTaskId;
+									return (
+										<Link
+											key={node.id}
+											to="/task/$id"
+											params={{ id: node.id }}
+											className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-120 group border-l-2 ${
+												isActive
+													? "bg-accent/10 text-fg-strong border-l-accent font-medium"
+													: "text-fg-3 hover:bg-surface hover:text-fg-2 border-l-transparent"
+											}`}
+										>
+											<span className="flex items-center gap-2.5 truncate max-w-[170px]">
+												<CircleDot
+													className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-accent-soft" : "text-fg-5"}`}
+												/>
+												<span className="truncate">{node.title}</span>
+											</span>
+											<ChevronRight
+												className={`h-3.5 w-3.5 flex-shrink-0 text-fg-5 transition-transform duration-120 group-hover:translate-x-0.5 ${isActive ? "text-accent-soft" : ""}`}
+											/>
+										</Link>
+									);
+								})}
+							</div>
+						</div>
+					)}
 
 					{/* Custom Date Selector */}
 					<div className="px-3">
