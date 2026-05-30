@@ -29,6 +29,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { addDays, getLocalDateString } from "@/lib/dates";
 import { dailyDateFromPath } from "@/lib/indexer";
 import { createNote } from "@/lib/notes";
+import { createTaskNode } from "@/lib/taskNode";
 import { useSaveNote } from "@/lib/useVault";
 import { useVaultStore } from "@/stores/vaultStore";
 
@@ -433,6 +434,18 @@ export const customCompletionSource = (
 				type: "variable",
 			}));
 
+		// 1b. Tasks-nó (type: task) — linka por título (entidade forte).
+		for (const n of store.notes) {
+			if (n.type !== "task") continue;
+			if (!n.title.toLowerCase().includes(query)) continue;
+			options.push({
+				label: n.title,
+				detail: "task",
+				apply: `[[${n.title}]] `,
+				type: "variable",
+			});
+		}
+
 		// 2. Dias (nós daily) — linka pela data ISO ([[YYYY-MM-DD]] resolve no
 		// clique via regex de data). Sempre oferece Hoje/Ontem; demais dias só
 		// quando há query (evita poluir com o histórico inteiro).
@@ -483,6 +496,25 @@ export const customCompletionSource = (
 								useVaultStore.getState().setVaultData(index);
 							})
 							.catch((err) => console.error("Erro ao criar nota:", err));
+					}
+				},
+			});
+			// Criar task forte (nó) com o texto do query como título.
+			options.push({
+				label: `Criar task: ${rawQuery}`,
+				detail: "task",
+				type: "text",
+				apply: (view, _completion, from, to) => {
+					view.dispatch({
+						changes: { from, to, insert: `[[${rawQuery}]] ` },
+					});
+					const root = useVaultStore.getState().rootHandle;
+					if (root) {
+						createTaskNode(root, rawQuery)
+							.then(({ index }) => {
+								useVaultStore.getState().setVaultData(index);
+							})
+							.catch((err) => console.error("Erro ao criar task:", err));
 					}
 				},
 			});
