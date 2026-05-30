@@ -53,6 +53,12 @@ describe("parseLine — tasks", () => {
 		expect(t.text).toBe("Tarefa feita");
 	});
 
+	it("4 status: doing ([/]) e cancelled ([-])", () => {
+		expect(task("- [/] Em andamento").status).toBe("doing");
+		expect(task("- [-] Cancelada").status).toBe("cancelled");
+		expect(task("- [ ] Aberta").status).toBe("open");
+	});
+
 	it("linha não-checkbox → null", () => {
 		expect(parseLine("Texto solto", 1, FILE, TODAY)).toBeNull();
 		expect(parseLine("- item de lista", 1, FILE, TODAY)).toBeNull();
@@ -127,6 +133,14 @@ describe("setTaskStatus — round-trip", () => {
 
 	it("linha não-checkbox inalterada", () => {
 		expect(setTaskStatus("texto", "done")).toBe("texto");
+	});
+
+	it("4 status: troca o char preservando o resto", () => {
+		const base = "- [ ] X 📅 2026-05-30 #t";
+		expect(setTaskStatus(base, "doing")).toBe("- [/] X 📅 2026-05-30 #t");
+		expect(setTaskStatus(base, "cancelled")).toBe("- [-] X 📅 2026-05-30 #t");
+		expect(setTaskStatus("- [/] Y", "done")).toBe("- [x] Y");
+		expect(setTaskStatus("- [-] Z", "open")).toBe("- [ ] Z");
 	});
 });
 

@@ -17,7 +17,24 @@ const STOPWATCH = "\u{23F1}\u{FE0F}?"; // ⏱️
 const DATE = "(\\d{4}-\\d{2}-\\d{2})";
 const TIME = "(\\d{1,2}:\\d{2})";
 
-const CHECKBOX = /^(\s*)- \[([ xX])\]\s+(.*)$/;
+// Status via char da checkbox: ' '=open, '/'=doing, 'x'/'X'=done, '-'=cancelled.
+const CHECKBOX = /^(\s*)- \[([ xX/-])\]\s+(.*)$/;
+
+/** Char da checkbox → TaskStatus. */
+export function charToStatus(c: string): TaskStatus {
+	if (c === "/") return "doing";
+	if (c === "-") return "cancelled";
+	if (c === "x" || c === "X") return "done";
+	return "open";
+}
+
+/** TaskStatus → char da checkbox. */
+export function statusToChar(status: TaskStatus): string {
+	if (status === "doing") return "/";
+	if (status === "cancelled") return "-";
+	if (status === "done") return "x";
+	return " ";
+}
 const SCHEDULED_RE = new RegExp(`${CALENDAR}\\s*${DATE}`, "u");
 const AGENDA_DATE_RE = new RegExp(`${SPIRAL}\\s*${DATE}`, "u");
 const TIME_RE = new RegExp(`${ALARM}\\s*${TIME}`, "u");
@@ -67,9 +84,9 @@ export function parseLine(
 	const m = CHECKBOX.exec(line);
 	if (!m) return null;
 
-	const statusChar = m[2];
+	const statusChar = m[2] ?? " ";
 	const body = m[3] ?? "";
-	const status: TaskStatus = statusChar === " " ? "open" : "done";
+	const status: TaskStatus = charToStatus(statusChar);
 	const id = hashId(`${sourceFile}:${lineNo}`);
 	const text = cleanText(body);
 
@@ -127,8 +144,8 @@ export function extractLinks(body: string): string[] {
  * (emojis, tags, espaços) byte a byte. Linha não-checkbox volta inalterada.
  */
 export function setTaskStatus(line: string, status: TaskStatus): string {
-	const mark = status === "done" ? "x" : " ";
-	return line.replace(/^(\s*- \[)[ xX](\])/, `$1${mark}$2`);
+	const mark = statusToChar(status);
+	return line.replace(/^(\s*- \[)[ xX/-](\])/, `$1${mark}$2`);
 }
 
 /**
