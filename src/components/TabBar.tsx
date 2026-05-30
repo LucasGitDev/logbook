@@ -1,11 +1,19 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarDays, FileText, Inbox, LayoutGrid, X } from "lucide-react";
+import {
+	CalendarDays,
+	CircleDot,
+	FileText,
+	Inbox,
+	LayoutGrid,
+	X,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import { type Tab, type TabKind, useUIStore } from "@/stores/uiStore";
 
 const ICONS: Record<TabKind, ComponentType<{ className?: string }>> = {
 	daily: CalendarDays,
 	note: FileText,
+	task: CircleDot,
 	inbox: Inbox,
 	week: LayoutGrid,
 };

@@ -63,7 +63,9 @@ function NoteView() {
 
 		const store = useVaultStore.getState();
 		const targetNote = resolveLinkTarget(store.notes, noteName);
-		if (targetNote) {
+		if (targetNote?.type === "task") {
+			navigate({ to: "/task/$id", params: { id: targetNote.id } });
+		} else if (targetNote) {
 			navigate({ to: "/note/$id", params: { id: targetNote.id } });
 		} else {
 			const create = confirm(

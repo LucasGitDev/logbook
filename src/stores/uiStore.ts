@@ -6,7 +6,7 @@ import { useVaultStore } from "./vaultStore";
 
 export type { ThemeType };
 
-export type TabKind = "daily" | "note" | "inbox" | "week";
+export type TabKind = "daily" | "note" | "task" | "inbox" | "week";
 
 /** Aba aberta (estilo VSCode). `id` é único e estável por destino. */
 export interface Tab {
