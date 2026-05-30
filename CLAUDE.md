@@ -50,6 +50,8 @@ vault/
 │       └── agenda.json       # compromissos do dia (têm horário)
 ├── notes/
 │   └── *.md                  # notas livres (type: note) — nós nomeados, linkáveis
+├── tasks/
+│   └── *.md                  # tasks-nó (type: task) — entidade forte; linha canônica + props
 ├── meta/
 │   ├── tasks.json            # índice global de tasks (derivado dos .md)
 │   ├── projects.json         # projetos e contextos (#tags)
@@ -64,7 +66,7 @@ Cada `.md` pode ter **frontmatter** YAML (Obsidian Properties), injetado de form
 ---
 id: 01HZX3QK7M8P                 # ULID estável — âncora de links, rename-safe
 title: Reunião de planejamento
-type: note                       # note | daily
+type: note                       # note | daily | task
 tags: [trabalho, infra]
 created: 2026-05-28
 aliases: [planning]
@@ -98,9 +100,11 @@ Emojis como marcadores semânticos:
 
 **Camada de entrada (UI):** emoji e `[[...]]` são formato de *disco* — nunca digitados à mão. No editor: `/` insere marcadores, `@` linka notas (insere `[[nome]]`), `#` autocompleta projetos. Render mostra chips/badges.
 
+**Dois níveis de task (Fase 6):** a *task-linha* (`- [ ] ...` num daily/note) é leve, verdade na linha. A *task-nó* (`tasks/<título>.md`, `type: task`) é entidade forte — arquivo é a verdade, linkável/descritível. Promover é one-way (`usePromoteTask`): cria o nó e troca a linha por `- [[título]]`. Estado (4 status `[ ]`/`[/]`/`[x]`/`[-]` + `📅` + `#`) na **linha canônica** do corpo; **prioridade e esforço no frontmatter** (builder de ordem fixa, diff limpo). Detalhes em [`docs/fases/fase-6-task-node.md`](./docs/fases/fase-6-task-node.md).
+
 ## Fluxo do Parser
 
-1. Ao abrir o vault, escaneia todos os `.md` sob `daily/` **e** `notes/`
+1. Ao abrir o vault, escaneia todos os `.md` sob `daily/`, `notes/` **e** `tasks/`
 2. Por arquivo: separa frontmatter (gray-matter) do corpo; extrai tasks, agendas e `[[links]]`
 3. Reconstrói `meta/tasks.json`, `projects.json` e `links.json` do zero (índices, não dado original)
 4. Ao marcar task como feita na UI → app reescreve o `[ ]` como `[x]` no `.md` original, preservando o resto da linha **e o frontmatter byte a byte**

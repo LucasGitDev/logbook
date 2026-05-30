@@ -3,9 +3,9 @@
 O trabalho é dividido em 5 fases sequenciais. Cada fase entrega algo usável de ponta a ponta e desbloqueia a próxima.
 
 ```
-Fase 1 ──▶ Fase 2 ──▶ Fase 2.5 ──▶ Fase 3 ──▶ Fase 4 ──▶ Fase 5
-Vault &    Daily       UI/UX        Notas &     Task        Polimento
-Parser     View        (Live Prev)  Links       System
+Fase 1 ──▶ Fase 2 ──▶ Fase 2.5 ──▶ Fase 3 ──▶ Fase 4 ──▶ Fase 5 ──▶ Fase 6
+Vault &    Daily       UI/UX        Notas &     Task        Polimento  Task
+Parser     View        (Live Prev)  Links       System                 como nó
 ```
 
 | Fase | Tema | Objetivo central | Entregável | Status |
@@ -16,6 +16,7 @@ Parser     View        (Live Prev)  Links       System
 | [**3**](./fase-3-notas-links.md) | Notas & Links | Notas livres e grafo | Criar notas livres, `[[links]]` via `@`, backlinks, criar nota a partir de link | ✅ Concluída |
 | [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; carry-over; inbox; filtro por projeto; visão semanal; abas VSCode | ✅ Concluída |
 | [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | Tema persistido em settings.json, layout responsivo (drawer + aviso FS Access), git informativo (branch no statusbar), atalhos | ✅ Concluída |
+| [**6**](./fase-6-task-node.md) | Task como nó | Tarefa como entidade forte | Nós `tasks/*.md` linkáveis/descritíveis; promoção one-way; prioridade/4 status/esforço; rota `/task/$id`; declaração via `[[link]]` | ✅ Concluída |
 
 ## Dependências entre objetivos
 

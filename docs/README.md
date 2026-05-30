@@ -26,6 +26,7 @@ Edição estilo Notion: o usuário **nunca digita emoji nem `[[...]]` à mão** 
 | **3** | [Notas & Links](./fases/fase-3-notas-links.md) | Notas livres, `[[wikilinks]]`, backlinks, criar nota via link | ✅ Concluída |
 | **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto, visão semanal, abas VSCode | ✅ Concluída |
 | **5** | [Polimento](./fases/fase-5-polimento.md) | Tema (persistido em settings.json), mobile responsivo, git informativo, atalhos de teclado | ✅ Concluída |
+| **6** | [Task como nó](./fases/fase-6-task-node.md) | Tarefas viram nós de 1ª classe (`tasks/`): promoção, propriedades (prioridade, 4 status, esforço), rota própria, declaração via link | ✅ Concluída |
 
 As fases são sequenciais: cada uma entrega algo usável e desbloqueia a próxima. Detalhes de dependência em [`fases/README.md`](./fases/README.md).
 
