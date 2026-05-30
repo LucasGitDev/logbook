@@ -1,12 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { getLocalDateString } from "@/lib/dates";
-import { injectFrontmatterLazy } from "@/lib/frontmatter";
+import {
+	type FrontmatterFields,
+	injectFrontmatterLazy,
+	updateFrontmatterFields,
+} from "@/lib/frontmatter";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
+import { resolveLinkTarget, sanitizeNoteName } from "@/lib/notes";
 import { setTaskScheduledDate, setTaskStatus } from "@/lib/parser";
+import { buildNewTaskContent, taskFilePath } from "@/lib/taskNode";
 import {
 	dailyNotePath,
 	ensureDailyNote,
+	fileExists,
 	readFile,
 	writeFile,
 } from "@/lib/vault";
@@ -77,11 +84,31 @@ export function useNote(id: string) {
 // resolveLinkTarget foi movido para ./notes (puro/testável); re-exporta p/ compat.
 export { resolveLinkTarget } from "./notes";
 
-/** Hook para carregar as tasks de um dia específico (lendo reativamente do store Zustand) */
+/**
+ * Tasks de um dia: agendadas (📅) ou criadas no dia, MAIS task-nós declarados
+ * pelo nó daily daquele dia (via `[[link]]`) — assim declarar uma task no dia
+ * a faz aparecer no painel mesmo sem data.
+ */
 export function useDailyTasks(date: string) {
 	const tasks = useVaultStore((state) => state.tasks);
+	const notes = useVaultStore((state) => state.notes);
+
+	const daily = notes.find(
+		(n) => n.type === "daily" && dailyDateFromPath(n.path) === date,
+	);
+	const declaredNodeIds = new Set<string>();
+	if (daily) {
+		for (const link of daily.links) {
+			const target = resolveLinkTarget(notes, link);
+			if (target?.type === "task") declaredNodeIds.add(target.id);
+		}
+	}
+
 	const data = tasks.filter(
-		(t) => t.scheduledDate === date || t.createdDate === date,
+		(t) =>
+			t.scheduledDate === date ||
+			t.createdDate === date ||
+			(t.nodeId !== undefined && declaredNodeIds.has(t.nodeId)),
 	);
 	return { data, isLoading: false };
 }
@@ -212,6 +239,129 @@ export function useRescheduleTask() {
 				queryClient.invalidateQueries({ queryKey: ["dailyNote", date] });
 				queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
 				queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
+			}
+		},
+	});
+}
+
+/**
+ * Promove uma task-linha (leve) a task-nó (forte, one-way):
+ * 1. cria `tasks/<título>.md` com o estado atual (status/due/projeto);
+ * 2. reescreve a linha de origem no dia/nota → referência `- [[título]]`;
+ * 3. reindexa. O nó passa a ser a fonte de verdade; o dia só o declara.
+ */
+export function usePromoteTask() {
+	const queryClient = useQueryClient();
+	const rootHandle = useVaultStore((state) => state.rootHandle);
+	const activeFilePath = useVaultStore((state) => state.activeFilePath);
+	const activeEditorView = useVaultStore((state) => state.activeEditorView);
+
+	return useMutation({
+		mutationFn: async ({ task }: { task: Task }) => {
+			if (!rootHandle) throw new Error("Vault não inicializado");
+
+			const title = sanitizeNoteName(task.text);
+			if (!title) throw new Error("Task sem texto não pode ser promovida");
+
+			// 1. Cria o nó da task (não sobrescreve se já existir).
+			const taskPath = taskFilePath(title);
+			if (!(await fileExists(rootHandle, taskPath))) {
+				await writeFile(
+					rootHandle,
+					taskPath,
+					buildNewTaskContent(title, {
+						due: task.scheduledDate,
+						project: task.project,
+						status: task.status,
+					}),
+				);
+			}
+
+			// 2. Reescreve a linha de origem → referência `- [[título]]`.
+			const toReference = (text: string): string => {
+				const indent = /^(\s*)/.exec(text)?.[1] ?? "";
+				return `${indent}- [[${title}]]`;
+			};
+
+			if (activeFilePath === task.sourceFile && activeEditorView) {
+				const view = activeEditorView;
+				const line = view.state.doc.line(task.sourceLine);
+				view.dispatch({
+					changes: {
+						from: line.from,
+						to: line.to,
+						insert: toReference(line.text),
+					},
+				});
+				// Persiste o doc do editor já sincronizado (sem clobber de edições).
+				await writeFile(rootHandle, task.sourceFile, view.state.doc.toString());
+			} else {
+				const content = await readFile(rootHandle, task.sourceFile);
+				if (content === null) {
+					throw new Error(`Arquivo não encontrado: ${task.sourceFile}`);
+				}
+				const lines = content.split(/\r?\n/);
+				if (task.sourceLine <= 0 || task.sourceLine > lines.length) {
+					throw new Error(
+						`Linha inválida ${task.sourceLine} no arquivo ${task.sourceFile}`,
+					);
+				}
+				lines[task.sourceLine - 1] = toReference(
+					lines[task.sourceLine - 1] ?? "",
+				);
+				await writeFile(rootHandle, task.sourceFile, lines.join("\n"));
+			}
+
+			const index = await reindexVault(rootHandle);
+			return { index, sourceFile: task.sourceFile, taskPath };
+		},
+		onSuccess: ({ index, sourceFile }) => {
+			useVaultStore.getState().setVaultData(index);
+			queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+
+			const date = dailyDateFromPath(sourceFile);
+			if (date) {
+				queryClient.invalidateQueries({ queryKey: ["dailyNote", date] });
+				queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
+				queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
+			}
+		},
+	});
+}
+
+/**
+ * Edita propriedades do frontmatter de um nó (ex: prioridade/esforço da task).
+ * Usa o builder determinístico (ordem fixa → diff limpo), preservando o corpo.
+ */
+export function useUpdateNodeProps() {
+	const queryClient = useQueryClient();
+	const rootHandle = useVaultStore((state) => state.rootHandle);
+
+	return useMutation({
+		mutationFn: async ({
+			path,
+			fields,
+		}: {
+			path: string;
+			fields: Partial<FrontmatterFields>;
+		}) => {
+			if (!rootHandle) throw new Error("Vault não inicializado");
+			const content = await readFile(rootHandle, path);
+			if (content === null) throw new Error(`Arquivo não encontrado: ${path}`);
+			await writeFile(
+				rootHandle,
+				path,
+				updateFrontmatterFields(content, fields),
+			);
+			const index = await reindexVault(rootHandle);
+			return { index, path };
+		},
+		onSuccess: ({ index, path }) => {
+			useVaultStore.getState().setVaultData(index);
+			queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+			const node = index.notes.find((n) => n.path === path);
+			if (node) {
+				queryClient.invalidateQueries({ queryKey: ["note", node.id] });
 			}
 		},
 	});
