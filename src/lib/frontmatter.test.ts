@@ -86,6 +86,32 @@ describe("buildFrontmatterBlock", () => {
 		});
 		expect(block).toContain('title: "Sprint: planejamento"');
 	});
+
+	it("task: priority/effort na ordem fixa (após type, antes de created)", () => {
+		const block = buildFrontmatterBlock({
+			id: "T",
+			title: "Deploy",
+			type: "task",
+			priority: "high",
+			effort: "2h",
+			created: "2026-05-29",
+		});
+		const lines = block.split("\n");
+		expect(lines[3]).toBe("type: task");
+		expect(lines[4]).toBe("priority: high");
+		expect(lines[5]).toBe("effort: 2h");
+		expect(lines[6]).toBe("created: 2026-05-29");
+	});
+
+	it("omite priority/effort quando ausentes", () => {
+		const block = buildFrontmatterBlock({
+			title: "Nota",
+			type: "note",
+			created: "2026-05-29",
+		});
+		expect(block).not.toContain("priority:");
+		expect(block).not.toContain("effort:");
+	});
 });
 
 describe("injectFrontmatterLazy", () => {
@@ -135,5 +161,24 @@ created: 2026-05-28
 		expect(data.created).toBeInstanceOf(Date);
 		expect(out).toContain("created: 2026-05-28");
 		expect(body.trim()).toBe("# Original body\n- [ ] task");
+	});
+
+	it("task: preserva priority/effort ao editar outro campo", () => {
+		const raw = `---
+id: T
+title: Deploy
+type: task
+priority: high
+effort: 2h
+created: 2026-05-29
+---
+- [ ] 📅 2026-05-30 #infra
+`;
+		const out = updateFrontmatterFields(raw, { priority: "low" });
+		expect(out).toContain("priority: low");
+		expect(out).toContain("effort: 2h");
+		expect(out).toContain("type: task");
+		const { body } = parseFrontmatter(out);
+		expect(body.trim()).toBe("- [ ] 📅 2026-05-30 #infra");
 	});
 });

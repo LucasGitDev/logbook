@@ -7,7 +7,7 @@
 
 import matter from "gray-matter";
 import { ulid } from "ulid";
-import type { NoteType } from "@/types/vault";
+import type { NoteType, Priority } from "@/types/vault";
 
 // Campos autorais do frontmatter (o que o nó declara sobre si).
 // Dado derivado (backlinks, índices) NUNCA entra aqui.
@@ -15,6 +15,8 @@ export interface FrontmatterFields {
 	id?: string; // gerado (ULID) se ausente
 	title: string;
 	type: NoteType;
+	priority?: Priority; // só faz sentido em type: task
+	effort?: string; // estimativa de esforço (type: task), ex: "2h"
 	tags?: string[];
 	created: string; // YYYY-MM-DD
 	aliases?: string[];
@@ -51,15 +53,22 @@ function yamlInlineArray(items: string[]): string {
 }
 
 /**
- * Monta o bloco de frontmatter à mão (ordem fixa: id, title, type, tags,
- * created, aliases). Gera `id` ULID se ausente. Retorna o bloco completo com
- * delimitadores e newline final. NÃO usa gray-matter.stringify.
+ * Monta o bloco de frontmatter à mão (ordem fixa: id, title, type, priority,
+ * effort, tags, created, aliases). Gera `id` ULID se ausente. Retorna o bloco
+ * completo com delimitadores e newline final. NÃO usa gray-matter.stringify.
+ * Ordem fixa → editar um campo não reordena os outros (diff limpo).
  */
 export function buildFrontmatterBlock(fields: FrontmatterFields): string {
 	const lines = ["---"];
 	lines.push(`id: ${fields.id ?? ulid()}`);
 	lines.push(`title: ${yamlScalar(fields.title)}`);
 	lines.push(`type: ${fields.type}`);
+	if (fields.priority) {
+		lines.push(`priority: ${fields.priority}`);
+	}
+	if (fields.effort) {
+		lines.push(`effort: ${yamlScalar(fields.effort)}`);
+	}
 	if (fields.tags && fields.tags.length > 0) {
 		lines.push(`tags: ${yamlInlineArray(fields.tags)}`);
 	}
@@ -104,6 +113,11 @@ export function updateFrontmatterFields(
 		id: typeof data.id === "string" ? data.id : undefined,
 		title: typeof data.title === "string" ? data.title : "",
 		type: (typeof data.type === "string" ? data.type : "note") as NoteType,
+		priority:
+			typeof data.priority === "string"
+				? (data.priority as Priority)
+				: undefined,
+		effort: typeof data.effort === "string" ? data.effort : undefined,
 		tags: Array.isArray(data.tags) ? (data.tags as string[]) : undefined,
 		created: coerceDate(data.created),
 		aliases: Array.isArray(data.aliases)
