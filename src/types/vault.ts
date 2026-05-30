@@ -2,7 +2,9 @@
 
 // ─── Task ────────────────────────────────────────────────────────────────────
 
-export type TaskStatus = "open" | "done";
+export type TaskStatus = "open" | "doing" | "done" | "cancelled";
+
+export type Priority = "high" | "medium" | "low";
 
 export interface Task {
 	id: string; // hash estável: origem + posição no arquivo
@@ -13,6 +15,12 @@ export interface Task {
 	project?: string; // #tag
 	sourceFile: string; // caminho relativo ao vault (ex: daily/2026-05-28/notes.md)
 	sourceLine: number; // linha no arquivo original (para reescrita bidirecional)
+	// ─── Task-nó (entidade forte): preenchidos só quando a linha canônica vem
+	// de um arquivo `tasks/*.md` (type: task). Linha-task comum deixa vazios. ──
+	nodeId?: string; // id (ULID) do nó da task — âncora de link / rota
+	title?: string; // título do nó (frontmatter)
+	priority?: Priority; // frontmatter
+	effort?: string; // estimativa de esforço (frontmatter, ex: "2h")
 }
 
 // ─── Agenda ──────────────────────────────────────────────────────────────────
@@ -31,7 +39,7 @@ export interface AgendaItem {
 
 // ─── Note (nó) ───────────────────────────────────────────────────────────────
 
-export type NoteType = "daily" | "note";
+export type NoteType = "daily" | "note" | "task";
 
 export interface Note {
 	id: string; // ULID do frontmatter — estável no rename
