@@ -9,6 +9,7 @@ import {
 	Inbox,
 	LayoutGrid,
 	LogOut,
+	Plus,
 } from "lucide-react";
 import { useState } from "react";
 import { getLocalDateString } from "@/lib/dates";
@@ -21,6 +22,7 @@ export function Sidebar() {
 	const rootHandle = useVaultStore((state) => state.rootHandle);
 	const resetVault = useVaultStore((state) => state.reset);
 	const clearTabs = useUIStore((state) => state.clearTabs);
+	const openCreateModal = useUIStore((state) => state.openCreateModal);
 	const [customDate, setCustomDate] = useState("");
 
 	// Estado ativo derivado da rota atual (sidebar é compartilhada na casca).
@@ -199,9 +201,19 @@ export function Sidebar() {
 					</div>
 
 					<div>
-						<h2 className="px-3 text-[10px] font-bold text-fg-5 uppercase tracking-widest mb-2 font-mono">
-							Notas Livres
-						</h2>
+						<div className="flex items-center justify-between pl-3 pr-1.5 mb-2">
+							<h2 className="text-[10px] font-bold text-fg-5 uppercase tracking-widest font-mono">
+								Notas Livres
+							</h2>
+							<button
+								type="button"
+								onClick={() => openCreateModal("note")}
+								title="Nova nota"
+								className="p-1 rounded-md text-fg-5 hover:text-accent hover:bg-surface transition-colors cursor-pointer"
+							>
+								<Plus className="h-3.5 w-3.5" />
+							</button>
+						</div>
 						{freeNotes.length === 0 ? (
 							<div className="px-3 py-2 text-xs text-fg-5 font-mono italic">
 								Nenhuma nota criada
@@ -237,11 +249,25 @@ export function Sidebar() {
 						)}
 					</div>
 
-					{taskNodes.length > 0 && (
-						<div>
-							<h2 className="px-3 text-[10px] font-bold text-fg-5 uppercase tracking-widest mb-2 font-mono">
+					<div>
+						<div className="flex items-center justify-between pl-3 pr-1.5 mb-2">
+							<h2 className="text-[10px] font-bold text-fg-5 uppercase tracking-widest font-mono">
 								Tarefas
 							</h2>
+							<button
+								type="button"
+								onClick={() => openCreateModal("task")}
+								title="Nova tarefa"
+								className="p-1 rounded-md text-fg-5 hover:text-accent hover:bg-surface transition-colors cursor-pointer"
+							>
+								<Plus className="h-3.5 w-3.5" />
+							</button>
+						</div>
+						{taskNodes.length === 0 ? (
+							<div className="px-3 py-2 text-xs text-fg-5 font-mono italic">
+								Nenhuma tarefa criada
+							</div>
+						) : (
 							<div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto pr-1">
 								{taskNodes.map((node) => {
 									const isActive = node.id === activeTaskId;
@@ -269,8 +295,8 @@ export function Sidebar() {
 									);
 								})}
 							</div>
-						</div>
-					)}
+						)}
+					</div>
 
 					{/* Custom Date Selector */}
 					<div className="px-3">

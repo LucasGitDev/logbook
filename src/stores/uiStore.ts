@@ -23,6 +23,8 @@ interface UIStore {
 	panelOpen: boolean;
 	focusMode: boolean;
 	commandPaletteOpen: boolean;
+	createModalOpen: boolean;
+	createModalKind: "note" | "task";
 	isInitialized: boolean;
 	activeProject: string | null;
 	openTabs: Tab[];
@@ -37,6 +39,8 @@ interface UIStore {
 	togglePanel: () => void;
 	toggleFocusMode: () => void;
 	setCommandPaletteOpen: (open: boolean) => void;
+	openCreateModal: (kind: "note" | "task") => void;
+	setCreateModalOpen: (open: boolean) => void;
 	initPreferences: () => Promise<void>;
 }
 
@@ -46,6 +50,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
 	panelOpen: true,
 	focusMode: false,
 	commandPaletteOpen: false,
+	createModalOpen: false,
+	createModalKind: "note",
 	isInitialized: false,
 	activeProject: null,
 	openTabs: [],
@@ -122,6 +128,19 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
 	setCommandPaletteOpen: (open) => {
 		set({ commandPaletteOpen: open });
+	},
+
+	// Abre o modal de criação já no tipo escolhido (fecha o palette se aberto).
+	openCreateModal: (kind) => {
+		set({
+			createModalOpen: true,
+			createModalKind: kind,
+			commandPaletteOpen: false,
+		});
+	},
+
+	setCreateModalOpen: (open) => {
+		set({ createModalOpen: open });
 	},
 
 	initPreferences: async () => {

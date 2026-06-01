@@ -5,7 +5,6 @@ import { addDays, getLocalDateString } from "@/lib/dates";
 import { updateFrontmatterFields } from "@/lib/frontmatter";
 import { clearVaultHandle } from "@/lib/idb";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
-import { createNote } from "@/lib/notes";
 import { deleteFile, readFile, writeFile } from "@/lib/vault";
 import { useUIStore } from "@/stores/uiStore";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -26,6 +25,7 @@ export function CommandPalette() {
 	const toggleSidebar = useUIStore((state) => state.toggleSidebar);
 	const togglePanel = useUIStore((state) => state.togglePanel);
 	const toggleFocusMode = useUIStore((state) => state.toggleFocusMode);
+	const openCreateModal = useUIStore((state) => state.openCreateModal);
 	const resetVault = useVaultStore((state) => state.reset);
 	const rootHandle = useVaultStore((state) => state.rootHandle);
 	const notes = useVaultStore((state) => state.notes);
@@ -116,27 +116,12 @@ export function CommandPalette() {
 				return;
 			}
 
-			// Nova nota livre: Cmd+N.
+			// Nova nota livre: Cmd+N → abre o modal de criação.
 			// ⚠️ Reservado pelo navegador (nova janela) — best-effort; fallback = ⌘K / Sidebar.
 			if (isMeta && !e.shiftKey && e.key.toLowerCase() === "n") {
-				const root = useVaultStore.getState().rootHandle;
-				if (!root) return;
+				if (!useVaultStore.getState().rootHandle) return;
 				e.preventDefault();
-				const title = prompt(
-					"Digite o título da nova nota (será criada na pasta 'notes/'):",
-				)?.trim();
-				if (!title) return;
-				createNote(root, title)
-					.then(({ index, note }) => {
-						useVaultStore.getState().setVaultData(index);
-						queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
-						if (note) navigate({ to: "/note/$id", params: { id: note.id } });
-					})
-					.catch((err) => {
-						alert(
-							`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
-						);
-					});
+				useUIStore.getState().openCreateModal("note");
 				return;
 			}
 		};
@@ -150,7 +135,6 @@ export function CommandPalette() {
 		togglePanel,
 		toggleFocusMode,
 		navigate,
-		queryClient,
 	]);
 
 	if (!isOpen) return null;
@@ -159,29 +143,6 @@ export function CommandPalette() {
 		clearVaultHandle();
 		resetVault();
 		navigate({ to: "/" });
-	};
-
-	const handleCreateNote = () => {
-		const title = prompt(
-			"Digite o título da nova nota (será criada na pasta 'notes/'):",
-		);
-		if (!title) return;
-		const cleanTitle = title.trim();
-		if (!cleanTitle || !rootHandle) return;
-
-		createNote(rootHandle, cleanTitle)
-			.then(({ index, note }) => {
-				useVaultStore.getState().setVaultData(index);
-				queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
-				if (note) {
-					navigate({ to: "/note/$id", params: { id: note.id } });
-				}
-			})
-			.catch((err) => {
-				alert(
-					`Erro ao criar nota: ${err instanceof Error ? err.message : String(err)}`,
-				);
-			});
 	};
 
 	const handleRenameActiveNote = async () => {
@@ -316,7 +277,12 @@ export function CommandPalette() {
 			icon: "➕",
 			label: "Nova nota livre",
 			keyHint: "⌘N",
-			action: handleCreateNote,
+			action: () => openCreateModal("note"),
+		},
+		{
+			icon: "◉",
+			label: "Nova tarefa",
+			action: () => openCreateModal("task"),
 		},
 	];
 

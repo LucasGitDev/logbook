@@ -13,7 +13,12 @@ import {
 	syntaxHighlighting,
 	syntaxTree,
 } from "@codemirror/language";
-import { EditorState, type Range, StateField } from "@codemirror/state";
+import {
+	EditorState,
+	type Range,
+	StateEffect,
+	StateField,
+} from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -336,6 +341,22 @@ const livePreviewPlugin = ViewPlugin.fromClass(
 	},
 );
 
+// Range do bloco de frontmatter (--- ... ---) no topo do doc, ou null.
+// `to` é o fim da linha do --- de fechamento. Mesma ideia de
+// calculateFrontmatterLines (indexer.ts), mas em cima do doc do CodeMirror.
+function frontmatterRange(
+	state: EditorState,
+): { from: number; to: number } | null {
+	const doc = state.doc;
+	if (doc.lines < 2 || doc.line(1).text !== "---") return null;
+	for (let l = 2; l <= doc.lines; l++) {
+		if (doc.line(l).text === "---") {
+			return { from: 0, to: doc.line(l).to };
+		}
+	}
+	return null;
+}
+
 // Decorações de BLOCO (---) precisam vir de um StateField, não de um ViewPlugin
 // (CodeMirror: "Block decorations may not be specified via plugins").
 function buildHrDecorations(state: EditorState): DecorationSet {
@@ -344,9 +365,12 @@ function buildHrDecorations(state: EditorState): DecorationSet {
 	for (const range of state.selection.ranges) {
 		activeLines.add(state.doc.lineAt(range.head).number);
 	}
+	// Os --- do frontmatter não são HR: ficam a cargo do frontmatterFold.
+	const fm = frontmatterRange(state);
 	syntaxTree(state).iterate({
 		enter(node) {
 			if (node.name === "HorizontalRule" && node.from < node.to) {
+				if (fm && node.from <= fm.to) return;
 				const ln = state.doc.lineAt(node.from).number;
 				// Cursor na linha → revela o markdown cru (---)
 				if (activeLines.has(ln)) return;
@@ -366,6 +390,80 @@ const hrField = StateField.define<DecorationSet>({
 	create: (state) => buildHrDecorations(state),
 	update(deco, tr) {
 		if (tr.docChanged || tr.selection) return buildHrDecorations(tr.state);
+		return deco.map(tr.changes);
+	},
+	provide: (f) => EditorView.decorations.from(f),
+});
+
+// --- Frontmatter colapsável ---
+// O bloco YAML (id/title/type/...) fica oculto por padrão atrás de uma barra
+// "Propriedades"; clicar expande/recolhe. O texto permanece no doc byte a byte
+// (só decoração visual) — zero impacto em save/parse.
+const toggleFrontmatter = StateEffect.define<boolean>();
+
+const frontmatterCollapsed = StateField.define<boolean>({
+	create: () => true, // colapsado por padrão
+	update(value, tr) {
+		for (const e of tr.effects) if (e.is(toggleFrontmatter)) return e.value;
+		return value;
+	},
+});
+
+class FrontmatterBarWidget extends WidgetType {
+	readonly collapsed: boolean;
+	constructor(collapsed: boolean) {
+		super();
+		this.collapsed = collapsed;
+	}
+	override eq(other: FrontmatterBarWidget) {
+		return other.collapsed === this.collapsed;
+	}
+	override toDOM(view: EditorView) {
+		const el = document.createElement("div");
+		el.className = "cm-frontmatter-bar";
+		el.innerHTML = `<span class="cm-fm-arrow">${this.collapsed ? "▸" : "▾"}</span> Propriedades`;
+		// mousedown preventDefault: não rouba a seleção/cursor do editor.
+		el.addEventListener("mousedown", (e) => e.preventDefault());
+		el.addEventListener("click", (e) => {
+			e.preventDefault();
+			view.dispatch({ effects: toggleFrontmatter.of(!this.collapsed) });
+		});
+		return el;
+	}
+	override ignoreEvent() {
+		return false;
+	}
+}
+
+function buildFrontmatterDeco(state: EditorState): DecorationSet {
+	const fm = frontmatterRange(state);
+	if (!fm) return Decoration.none;
+	const collapsed = state.field(frontmatterCollapsed);
+	if (collapsed) {
+		// Substitui o bloco inteiro pela barra (colapsado).
+		return Decoration.set([
+			Decoration.replace({
+				widget: new FrontmatterBarWidget(true),
+				block: true,
+			}).range(fm.from, fm.to),
+		]);
+	}
+	// Expandido: alça de recolher acima do YAML cru (que segue visível).
+	return Decoration.set([
+		Decoration.widget({
+			widget: new FrontmatterBarWidget(false),
+			block: true,
+			side: -1,
+		}).range(0),
+	]);
+}
+
+const frontmatterFold = StateField.define<DecorationSet>({
+	create: (state) => buildFrontmatterDeco(state),
+	update(deco, tr) {
+		if (tr.docChanged || tr.effects.some((e) => e.is(toggleFrontmatter))) {
+			return buildFrontmatterDeco(tr.state);
+		}
 		return deco.map(tr.changes);
 	},
 	provide: (f) => EditorView.decorations.from(f),
@@ -705,6 +803,8 @@ export function DailyEditor({
 					chipPlugin,
 					livePreviewPlugin,
 					hrField,
+					frontmatterCollapsed,
+					frontmatterFold,
 					updateListener,
 					clickHandler,
 					EditorView.lineWrapping,

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
+import { CreateModal } from "@/components/CreateModal";
 import { Sidebar } from "@/components/Sidebar";
 import { Statusbar } from "@/components/Statusbar";
 import { TabBar } from "@/components/TabBar";
@@ -76,6 +77,7 @@ function AppLayout() {
 
 			<Statusbar />
 			<CommandPalette />
+			<CreateModal />
 		</div>
 	);
 }

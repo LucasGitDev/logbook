@@ -775,3 +775,33 @@ h6 {
 	margin: 14px 0 !important;
 	height: 1px !important;
 }
+
+/* Barra do frontmatter colapsável (Propriedades) */
+.cm-frontmatter-bar {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 4px 0 10px;
+	padding: 3px 10px;
+	border: 1px solid var(--line-soft);
+	border-radius: 6px;
+	background: var(--surface);
+	color: var(--fg-5);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	cursor: pointer;
+	user-select: none;
+	transition:
+		color 0.12s,
+		border-color 0.12s;
+}
+.cm-frontmatter-bar:hover {
+	color: var(--accent);
+	border-color: var(--accent-soft);
+}
+.cm-fm-arrow {
+	font-size: 10px;
+}
