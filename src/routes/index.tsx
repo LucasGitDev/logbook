@@ -110,7 +110,7 @@ function Home() {
 						Navegador não compatível
 					</h1>
 					<p className="text-sm text-fg-4 leading-relaxed">
-						O Diário de Bordo lê e escreve arquivos locais via{" "}
+						O Logbook lê e escreve arquivos locais via{" "}
 						<strong>File System Access API</strong>, que não está disponível
 						neste navegador/dispositivo. Abra no{" "}
 						<strong>Chrome, Edge ou Opera no desktop</strong>.
@@ -143,7 +143,7 @@ function Home() {
 				</div>
 
 				<h1 className="text-2xl font-bold text-fg-strong tracking-wide mb-2">
-					Diário de Bordo
+					Logbook
 				</h1>
 
 				<p className="text-sm text-fg-4 leading-relaxed mb-8 max-w-sm">

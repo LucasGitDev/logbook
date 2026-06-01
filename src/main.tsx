@@ -11,7 +11,9 @@ import { useUIStore } from "./stores/uiStore";
 // Inicializa preferências de UI (tema, layout) do IndexedDB
 useUIStore.getState().initPreferences();
 
-const router = createRouter({ routeTree });
+// base path do deploy (GitHub Pages serve em /logbook/). Em dev = "".
+const basepath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const router = createRouter({ routeTree, basepath });
 
 declare module "@tanstack/react-router" {
 	interface Register {

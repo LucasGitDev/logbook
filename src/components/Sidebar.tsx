@@ -108,7 +108,7 @@ export function Sidebar() {
 					</div>
 					<div>
 						<h1 className="text-sm font-bold text-fg-strong tracking-wide">
-							Diário de Bordo
+							Logbook
 						</h1>
 						<p className="text-[10px] text-fg-5 font-medium font-mono">
 							obsidian-lite logs
