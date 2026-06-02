@@ -165,6 +165,26 @@ export function setTaskScheduledDate(line: string, date: string): string {
 	return `${line.replace(/\s+$/, "")} ${CALENDAR} ${date}`;
 }
 
+/**
+ * Monta a linha canônica de um compromisso (agenda) na ordem fixa de marcadores
+ * (texto 🗓️ data ⏰ hora ⏱️ duração #projeto) → diff limpo e parse garantido.
+ * Compromisso é uma linha de checkbox (`- [ ]`) com 🗓️ E ⏰ — é o que o parser
+ * reconhece como AgendaItem. Emojis nunca digitados à mão: este builder os injeta.
+ */
+export function buildAgendaLine(opts: {
+	text: string;
+	date: string;
+	time: string;
+	durationMin?: number;
+	project?: string;
+}): string {
+	const { text, date, time, durationMin, project } = opts;
+	let line = `- [ ] ${text.trim()} 🗓️ ${date} ⏰ ${time}`;
+	if (durationMin && durationMin > 0) line += ` ⏱️ ${durationMin}min`;
+	if (project) line += ` #${project.replace(/^#/, "")}`;
+	return line;
+}
+
 /** Parseia o corpo inteiro de um nó: tasks, agenda e links de saída. */
 export function parseNoteBody(
 	body: string,

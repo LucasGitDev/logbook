@@ -1,11 +1,20 @@
-import { Clock, Hash, Timer } from "lucide-react";
+import { Clock, Hash, Plus, Timer, X } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import { useAddAgenda } from "@/lib/useVault";
 import type { AgendaItem } from "@/types/vault";
 
 interface AgendaViewProps {
 	items: AgendaItem[];
+	date: string;
 }
 
-export function AgendaView({ items }: AgendaViewProps) {
+export function AgendaView({ items, date }: AgendaViewProps) {
+	const [formOpen, setFormOpen] = useState(false);
+	const [text, setText] = useState("");
+	const [time, setTime] = useState("09:00");
+	const [duration, setDuration] = useState("");
+	const addAgenda = useAddAgenda();
+
 	// Auxiliar para formatar duração amigável
 	const formatDuration = (mins?: number) => {
 		if (!mins) return "";
@@ -15,14 +24,98 @@ export function AgendaView({ items }: AgendaViewProps) {
 		return remaining > 0 ? `${hrs}h ${remaining}m` : `${hrs}h`;
 	};
 
+	const resetForm = () => {
+		setText("");
+		setTime("09:00");
+		setDuration("");
+		setFormOpen(false);
+	};
+
+	const handleSubmit = (e: FormEvent) => {
+		e.preventDefault();
+		const trimmed = text.trim();
+		if (!trimmed || !time) return;
+		const durationMin = duration ? Number(duration) : undefined;
+		addAgenda.mutate(
+			{
+				date,
+				text: trimmed,
+				time,
+				durationMin: Number.isFinite(durationMin) ? durationMin : undefined,
+			},
+			{ onSuccess: resetForm },
+		);
+	};
+
 	return (
 		<div>
 			<h3 className="text-xs font-semibold text-fg-4 uppercase tracking-wider mb-3 flex items-center justify-between font-mono">
 				<span>Agenda do Dia</span>
-				<span className="bg-warn/10 text-warn text-[10px] px-1.5 py-0.5 rounded-full">
-					{items.length}
+				<span className="flex items-center gap-2">
+					<span className="bg-warn/10 text-warn text-[10px] px-1.5 py-0.5 rounded-full">
+						{items.length}
+					</span>
+					<button
+						type="button"
+						onClick={() => setFormOpen((v) => !v)}
+						title={formOpen ? "Cancelar" : "Novo compromisso"}
+						className="h-5 w-5 inline-flex items-center justify-center rounded text-fg-4 hover:text-fg hover:bg-surface-hover transition-colors cursor-pointer"
+					>
+						{formOpen ? (
+							<X className="h-3.5 w-3.5" />
+						) : (
+							<Plus className="h-3.5 w-3.5" />
+						)}
+					</button>
 				</span>
 			</h3>
+
+			{formOpen && (
+				<form
+					onSubmit={handleSubmit}
+					className="mb-3 p-3 bg-surface border border-line-soft rounded-lg flex flex-col gap-2"
+				>
+					<input
+						type="text"
+						value={text}
+						onChange={(e) => setText(e.target.value)}
+						placeholder="Compromisso (ex: 1:1 com gestor)"
+						// biome-ignore lint/a11y/noAutofocus: foco ao abrir o form é o esperado
+						autoFocus
+						className="w-full bg-bg border border-line-soft rounded px-2 py-1.5 text-sm text-fg placeholder:text-fg-5 focus:outline-none focus:border-accent font-mono"
+					/>
+					<div className="flex items-center gap-2">
+						<label className="flex items-center gap-1 text-[10px] text-fg-5 font-mono uppercase tracking-wider">
+							<Clock className="h-3 w-3" />
+							<input
+								type="time"
+								value={time}
+								onChange={(e) => setTime(e.target.value)}
+								className="bg-bg border border-line-soft rounded px-1.5 py-1 text-xs text-fg focus:outline-none focus:border-accent font-mono"
+							/>
+						</label>
+						<label className="flex items-center gap-1 text-[10px] text-fg-5 font-mono uppercase tracking-wider">
+							<Timer className="h-3 w-3" />
+							<input
+								type="number"
+								min="0"
+								step="5"
+								value={duration}
+								onChange={(e) => setDuration(e.target.value)}
+								placeholder="min"
+								className="w-16 bg-bg border border-line-soft rounded px-1.5 py-1 text-xs text-fg placeholder:text-fg-5 focus:outline-none focus:border-accent font-mono"
+							/>
+						</label>
+					</div>
+					<button
+						type="submit"
+						disabled={!text.trim() || addAgenda.isPending}
+						className="w-full py-1.5 bg-accent hover:bg-accent-strong text-white rounded text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 font-mono"
+					>
+						{addAgenda.isPending ? "Adicionando..." : "Adicionar"}
+					</button>
+				</form>
+			)}
 
 			{items.length === 0 ? (
 				<p className="text-xs text-fg-5 italic p-4 text-center bg-surface border border-dashed border-line-soft rounded-lg font-mono">

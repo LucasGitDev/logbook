@@ -8,7 +8,11 @@ import {
 } from "@/lib/frontmatter";
 import { dailyDateFromPath, reindexVault } from "@/lib/indexer";
 import { resolveLinkTarget, sanitizeNoteName } from "@/lib/notes";
-import { setTaskScheduledDate, setTaskStatus } from "@/lib/parser";
+import {
+	buildAgendaLine,
+	setTaskScheduledDate,
+	setTaskStatus,
+} from "@/lib/parser";
 import { buildNewTaskContent, taskFilePath } from "@/lib/taskNode";
 import {
 	dailyNotePath,
@@ -240,6 +244,65 @@ export function useRescheduleTask() {
 				queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
 				queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
 			}
+		},
+	});
+}
+
+/**
+ * Adiciona um compromisso (agenda) ao nó do dia: monta a linha canônica
+ * (`- [ ] texto 🗓️ data ⏰ hora ...`) e a acrescenta ao fim do corpo. Se o dia
+ * estiver aberto no editor ativo, escreve no disco E sincroniza o doc do
+ * CodeMirror (evita conflito com o autosave). Reindexa e atualiza o painel.
+ */
+export function useAddAgenda() {
+	const queryClient = useQueryClient();
+	const rootHandle = useVaultStore((state) => state.rootHandle);
+	const activeFilePath = useVaultStore((state) => state.activeFilePath);
+	const activeEditorView = useVaultStore((state) => state.activeEditorView);
+
+	return useMutation({
+		mutationFn: async ({
+			date,
+			text,
+			time,
+			durationMin,
+			project,
+		}: {
+			date: string;
+			text: string;
+			time: string;
+			durationMin?: number;
+			project?: string;
+		}) => {
+			if (!rootHandle) throw new Error("Vault não inicializado");
+
+			const path = dailyNotePath(date);
+			const line = buildAgendaLine({ text, date, time, durationMin, project });
+
+			// Doc atual = editor (se este dia estiver aberto) senão disco.
+			const view = activeFilePath === path ? activeEditorView : null;
+			const current =
+				view?.state.doc.toString() ?? (await readFile(rootHandle, path)) ?? "";
+			const sep = current.length === 0 || current.endsWith("\n") ? "" : "\n";
+			const insert = `${sep}${line}\n`;
+
+			await writeFile(rootHandle, path, `${current}${insert}`);
+			// Mantém o doc do editor igual ao disco — o autosave pendente vira no-op.
+			if (view) {
+				view.dispatch({
+					changes: { from: view.state.doc.length, insert },
+				});
+			}
+
+			const index = await reindexVault(rootHandle);
+			return { index, date };
+		},
+		onSuccess: ({ index, date }) => {
+			useVaultStore.getState().setVaultData(index);
+			queryClient.invalidateQueries({ queryKey: ["vaultIndex"] });
+			queryClient.invalidateQueries({ queryKey: ["dailyNote", date] });
+			queryClient.invalidateQueries({ queryKey: ["dailyTasks", date] });
+			queryClient.invalidateQueries({ queryKey: ["dailyAgenda", date] });
 		},
 	});
 }

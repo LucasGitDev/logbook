@@ -117,7 +117,7 @@ function DailyView() {
 					</div>
 
 					<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
-						<AgendaView items={agenda} />
+						<AgendaView items={agenda} date={date} />
 
 						<hr className="border-line-soft" />
 

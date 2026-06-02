@@ -493,10 +493,13 @@ export const customCompletionSource = (
 			},
 			{
 				label: "Compromisso (Event)",
-				detail: "🗓️ YYYY-MM-DD ⏰ HH:MM",
+				detail: "- [ ] 🗓️ YYYY-MM-DD ⏰ HH:MM",
 				apply: () => {
 					const today = getLocalDateString();
-					return `🗓️ ${today} ⏰ 09:00 `;
+					// Compromisso PRECISA da checkbox — o parser só vira AgendaItem
+					// a partir de uma linha `- [ ]` (parser.ts). Sem o prefixo a
+					// linha era ignorada e o compromisso nunca aparecia no painel.
+					return `- [ ] 🗓️ ${today} ⏰ 09:00 `;
 				},
 			},
 			{ label: "Duração (Duration)", detail: "⏱️ min", apply: "⏱️ 30min " },

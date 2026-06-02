@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AgendaItem, Task } from "@/types/vault";
 import {
+	buildAgendaLine,
 	cleanText,
 	extractLinks,
 	parseLine,
@@ -99,6 +100,46 @@ describe("parseLine — agenda", () => {
 		const a = agenda("- [ ] 1:1 🗓️ 2026-05-29 ⏰ 14:00 #pessoas");
 		expect(a.text).toBe("1:1");
 		expect(a.project).toBe("pessoas");
+	});
+});
+
+describe("buildAgendaLine — round-trip", () => {
+	it("gera linha de checkbox que o parser reconhece como agenda", () => {
+		const line = buildAgendaLine({
+			text: "1:1 com gestor",
+			date: "2026-05-29",
+			time: "14:00",
+		});
+		expect(line).toBe("- [ ] 1:1 com gestor 🗓️ 2026-05-29 ⏰ 14:00");
+		const a = agenda(line);
+		expect(a.text).toBe("1:1 com gestor");
+		expect(a.date).toBe("2026-05-29");
+		expect(a.time).toBe("14:00");
+	});
+
+	it("inclui duração e projeto na ordem canônica", () => {
+		const line = buildAgendaLine({
+			text: "Café",
+			date: "2026-05-29",
+			time: "09:30",
+			durationMin: 30,
+			project: "pessoas",
+		});
+		expect(line).toBe("- [ ] Café 🗓️ 2026-05-29 ⏰ 09:30 ⏱️ 30min #pessoas");
+		const a = agenda(line);
+		expect(a.durationMin).toBe(30);
+		expect(a.project).toBe("pessoas");
+	});
+
+	it("normaliza # duplicado no projeto e ignora duração <= 0", () => {
+		const line = buildAgendaLine({
+			text: "X",
+			date: "2026-05-29",
+			time: "10:00",
+			durationMin: 0,
+			project: "#infra",
+		});
+		expect(line).toBe("- [ ] X 🗓️ 2026-05-29 ⏰ 10:00 #infra");
 	});
 });
 
