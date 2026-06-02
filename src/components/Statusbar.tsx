@@ -50,6 +50,9 @@ export function Statusbar() {
 			<span className="sb-cell">
 				Ln {activeCursorPos.line}, Col {activeCursorPos.col}
 			</span>
+			<span className="sb-cell text-fg-4" title="Versão do Logbook">
+				v{__APP_VERSION__}
+			</span>
 		</div>
 	);
 }

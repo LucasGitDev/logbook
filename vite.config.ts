@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { copyFileSync } from "node:fs";
+import { copyFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
@@ -19,9 +19,20 @@ function spaFallback404(): Plugin {
 	};
 }
 
+// Versão exibida no app, lida do package.json (fonte única).
+const pkgVersion = JSON.parse(
+	readFileSync(
+		fileURLToPath(new URL("./package.json", import.meta.url)),
+		"utf8",
+	),
+).version as string;
+
 export default defineConfig(({ command }) => ({
 	// Project page: assets servidos sob /logbook/. Dev fica na raiz.
 	base: command === "build" ? "/logbook/" : "/",
+	define: {
+		__APP_VERSION__: JSON.stringify(pkgVersion),
+	},
 	plugins: [
 		tanstackRouter({ target: "react", autoCodeSplitting: true }),
 		tailwindcss(),

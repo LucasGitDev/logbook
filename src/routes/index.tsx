@@ -213,6 +213,8 @@ function Home() {
 				<span>Compatível com Chrome, Edge e Opera</span>
 				<span>•</span>
 				<span>Local-first architecture</span>
+				<span>•</span>
+				<span>v{__APP_VERSION__}</span>
 			</footer>
 		</div>
 	);
