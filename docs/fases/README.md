@@ -3,10 +3,13 @@
 O trabalho é dividido em 5 fases sequenciais. Cada fase entrega algo usável de ponta a ponta e desbloqueia a próxima.
 
 ```
-Fase 1 ──▶ Fase 2 ──▶ Fase 2.5 ──▶ Fase 3 ──▶ Fase 4 ──▶ Fase 5 ──▶ Fase 6
-Vault &    Daily       UI/UX        Notas &     Task        Polimento  Task
-Parser     View        (Live Prev)  Links       System                 como nó
+Fase 1 ─▶ Fase 2 ─▶ Fase 2.5 ─▶ Fase 3 ─▶ Fase 4 ─▶ Fase 5 ─▶ Fase 6 ─▶ Fase 7 ─▶ Fase 8 ─▶ Fase 9
+Vault &   Daily      UI/UX       Notas &   Task       Polim.    Task      Anexos    Desenho   Editor
+Parser    View       (LivePrev)  Links     System               como nó   (embed)   (Excali)  (backlog)
+└── 1-6 concluídas ──────────────────────────────────────────┘└── 7-9 backlog ─────────────────┘
 ```
+
+> **7 (anexos)** é pré-requisito de **8 (desenho)** — desenho reusa o pipeline de embed/block-widget. **9** é grab-bag independente; a sub-fase **9.5 (agenda editável)** corrige um gap já existente e pode ir a qualquer momento.
 
 | Fase | Tema | Objetivo central | Entregável | Status |
 |---|---|---|---|---|
@@ -17,6 +20,9 @@ Parser     View        (Live Prev)  Links       System                 como nó
 | [**4**](./fase-4-task-system.md) | Task System | Tasks encadeadas entre dias | Criar task hoje → aparece no dia agendado; carry-over; inbox; filtro por projeto; visão semanal; abas VSCode | ✅ Concluída |
 | [**5**](./fase-5-polimento.md) | Polimento | UX, mobile e git flow | Tema persistido em settings.json, layout responsivo (drawer + aviso FS Access), git informativo (branch no statusbar), atalhos | ✅ Concluída |
 | [**6**](./fase-6-task-node.md) | Task como nó | Tarefa como entidade forte | Nós `tasks/*.md` linkáveis/descritíveis; promoção one-way; prioridade/4 status/esforço; rota `/task/$id`; declaração via `[[link]]` | ✅ Concluída |
+| [**7**](./fase-7-anexos.md) | Anexos & embeds | Pipeline de imagem/binário | Colar imagem → `assets/YYYY/MM/<hash>`; embed `![[...]]` inline; `vault.ts` lê/escreve binário | 📋 Backlog |
+| [**8**](./fase-8-desenho.md) | Desenho à mão livre | Excalidraw como nó | `drawings/*.excalidraw.md` (`type: drawing`, cena JSON texto); embed inline (preview SVG); rota `/drawing/$id` | 📋 Backlog |
+| [**9**](./fase-9-editor.md) | Melhorias de editor | Editor denso | Backlog priorizado; sub-fase [9.5 Agenda editável](./fase-9.5-agenda.md), callouts, find&replace, listas, paste | 📋 Backlog |
 
 ## Dependências entre objetivos
 

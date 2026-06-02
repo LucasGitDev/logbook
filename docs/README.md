@@ -27,6 +27,9 @@ Edição estilo Notion: o usuário **nunca digita emoji nem `[[...]]` à mão** 
 | **4** | [Task System](./fases/fase-4-task-system.md) | Carry-over entre dias, inbox de tasks abertas, filtro por projeto, visão semanal, abas VSCode | ✅ Concluída |
 | **5** | [Polimento](./fases/fase-5-polimento.md) | Tema (persistido em settings.json), mobile responsivo, git informativo, atalhos de teclado | ✅ Concluída |
 | **6** | [Task como nó](./fases/fase-6-task-node.md) | Tarefas viram nós de 1ª classe (`tasks/`): promoção, propriedades (prioridade, 4 status, esforço), rota própria, declaração via link | ✅ Concluída |
+| **7** | [Anexos & embeds](./fases/fase-7-anexos.md) | Colar imagem do clipboard → `assets/YYYY/MM/<hash>`; embed `![[...]]` renderizado inline; pipeline de I/O binário | 📋 Backlog |
+| **8** | [Desenho à mão livre](./fases/fase-8-desenho.md) | Excalidraw como nó (`type: drawing`, cena JSON texto); embed inline com preview SVG; rota `/drawing/$id` | 📋 Backlog |
+| **9** | [Melhorias de editor](./fases/fase-9-editor.md) | Backlog priorizado: agenda editável ([9.5](./fases/fase-9.5-agenda.md)), callouts, find&replace, listas, paste inteligente | 📋 Backlog |
 
 As fases são sequenciais: cada uma entrega algo usável e desbloqueia a próxima. Detalhes de dependência em [`fases/README.md`](./fases/README.md).
 
