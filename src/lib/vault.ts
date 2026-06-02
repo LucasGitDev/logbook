@@ -30,7 +30,10 @@ export async function verifyPermission(
 	const opts: FileSystemHandlePermissionDescriptor = {
 		mode: write ? "readwrite" : "read",
 	};
-	if ((await handle.queryPermission(opts)) === "granted") return true;
+	// requestPermission já resolve "granted" sem prompt quando a permissão existe,
+	// então pulamos o queryPermission: um await a menos ANTES da chamada que exige
+	// transient activation do clique. O await extra gastava a janela de ativação e
+	// o prompt sumia ao reabrir o vault recente (sintoma no Arc).
 	return (await handle.requestPermission(opts)) === "granted";
 }
 

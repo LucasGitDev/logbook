@@ -681,13 +681,30 @@ export function DailyEditor({
 		useVaultStore.getState().setActiveCursorPos({ line: 1, col: 1 });
 
 		if (viewRef.current) {
-			const currentViewText = viewRef.current.state.doc.toString();
-			if (currentViewText !== initialValue) {
+			const cur = viewRef.current.state.doc.toString();
+			if (cur !== initialValue) {
+				// Diff mínimo (prefixo/sufixo comum): troca só o trecho alterado, em vez
+				// de reescrever o doc inteiro. Assim o CodeMirror remapeia a seleção e o
+				// cursor NÃO pula quando o re-index do auto-save reescreve initialValue
+				// (ex.: 1º save injeta o frontmatter no topo e o disco passa a diferir).
+				let start = 0;
+				const max = Math.min(cur.length, initialValue.length);
+				while (start < max && cur[start] === initialValue[start]) start++;
+				let endCur = cur.length;
+				let endNew = initialValue.length;
+				while (
+					endCur > start &&
+					endNew > start &&
+					cur[endCur - 1] === initialValue[endNew - 1]
+				) {
+					endCur--;
+					endNew--;
+				}
 				viewRef.current.dispatch({
 					changes: {
-						from: 0,
-						to: currentViewText.length,
-						insert: initialValue,
+						from: start,
+						to: endCur,
+						insert: initialValue.slice(start, endNew),
 					},
 				});
 			}
